@@ -1,6 +1,6 @@
 
 solved:
-set ID, CAN_ID is set in can_config file in int8_t format, other files(.it, main) use as extern int16_t format, so the first XX in XX22 will be set randomly.
+1) set ID, CAN_ID is set in can_config file in int8_t format, other files(.it, main) use as extern int16_t format, so the first XX in XX22 will be set randomly.
 so solve this problem should be keeping same data format in different files.
 Problems:
 
