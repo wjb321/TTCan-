@@ -2,6 +2,8 @@
 solved:
 1) set ID, CAN_ID is set in can_config file in int8_t format, other files(.it, main) use as extern int16_t format, so the first XX in XX22 will be set randomly.
 so solve this problem should be keeping same data format in different files.
+
+2）as for data6 and data7, cause i enable ttcan, which uses the data6 and data7 as the counter, that's why it generates random values. while there is one node can 'safely' give the expected data, actually it is abnormal.  
 Problems:
 
 do the loopback test, there are two different nodes A, B.
