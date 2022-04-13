@@ -111,10 +111,10 @@ void Node2()
       if( CanRefFlag == ENABLE )
         {
           uint16_t timelist =0;
-          if(NumBC >= TotNumBC)
-            {
-              NumBC = 0;
-            }
+					if(NumBC >= TotNumBC)
+					{
+						NumBC = 0;
+					}
           printf("************ %d. reference start********** \r\n",NumBC);
           MesTimesInBC = TimerISR();
           LEDC14 = !LEDC14;
@@ -125,7 +125,7 @@ void Node2()
           printf("finalTimerValue[0] is %d \r\n", finalTimerValue[0]);
           printf("finalTimerValue[1] is %d \r\n", finalTimerValue[1]);
           printf("finalTimerValue[2] is %d \r\n", finalTimerValue[2]);
-          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
+				  printf("MesTimesInBC is %d \r\n", MesTimesInBC);
           if(MesTimesInBC !=0)
             {
               if(finalTimerValue[0]== 0)
@@ -142,18 +142,18 @@ void Node2()
                   TIM3_Int_Init(finalTimerValue[0],7199,ENABLE); // this gets from timerset()
                 }
             }
-          else
-            {
-              printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
-            }
+           else
+					 {
+						 printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
+					 }
           //NodeMesTransmit(Received_mes_id[NumBC][1]);
-
+       
           interrupt_sos_times =1;
-          NumBC++;
-
-          if(NumBC > TotNumBC)   //3>= 3 // -1  //0
+					 NumBC++;
+          
+					 if(NumBC > TotNumBC)   //3>= 3 // -1  //0
             {
-              NumBC = 0; // -1;//
+              NumBC = 0; // -1;//  
             }
           printf("************reference end ********** \r\n");
           printf(" \r\n");
