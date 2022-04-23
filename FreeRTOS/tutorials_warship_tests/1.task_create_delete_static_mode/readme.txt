@@ -8,4 +8,5 @@ then find out the errors say 2 functions are not defined: vApplicationGetIdleTas
    
 3. program the test code: 
    a, start task structure
-   b, 
+   b, task1 and task2 structure
+   c, realize the functions for task1 and task2
