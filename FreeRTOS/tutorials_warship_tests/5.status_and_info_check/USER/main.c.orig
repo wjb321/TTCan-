@@ -1,0 +1,91 @@
+#include "sys.h"
+#include "delay.h"
+#include "usart.h"
+#include "led.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
+//Start Task handler definition
+void start_task( void * pvParameters );
+TaskHandle_t StartTask_Handler;
+#define START_STK_SIZE 128
+#define START_TASK_PRIO 1
+StackType_t StartTaskStack[START_STK_SIZE]; 
+StaticTask_t StartTaskTCB;
+//define idle task
+static StackType_t IdleTaskStack[configMINIMAL_STACK_SIZE];
+static StaticTask_t  IdleTaskTCB;
+
+//define timer task
+static StackType_t TimerTaskStack[configTIMER_TASK_STACK_DEPTH];
+static StaticTask_t  TimerTaskTCB;
+
+
+//memory for idle task
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+  *ppxIdleTaskTCBBuffer = &IdleTaskTCB;
+  *ppxIdleTaskStackBuffer = IdleTaskStack ;
+  *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
+
+
+
+
+//memory for timer task
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
+                                     StackType_t **ppxTimerTaskStackBuffer,
+                                     uint32_t *pulTimerTaskStackSize )
+{
+  *ppxTimerTaskTCBBuffer = &TimerTaskTCB;
+  *ppxTimerTaskStackBuffer = TimerTaskStack ;
+  *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+}
+
+
+
+
+int main(void)
+{
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);//设置系统中断优先级分组4
+  delay_init();	    				//延时函数初始化
+  uart_init(115200);					//初始化串口
+  LED_Init();		  					//初始化LED
+
+
+  // get from task.h when configSUPPORT_ALLOCATION 1
+  // create StartTask, which return the taskhandler: TaskHandle_t
+  StartTask_Handler = xTaskCreateStatic( (TaskFunction_t)  start_task,
+                                  (char *        ) "start_task",
+                                  (uint32_t      )  START_STK_SIZE,
+                                  (void *        )  NULL,
+                                  (UBaseType_t   )  START_TASK_PRIO,
+                                  (StackType_t * )  StartTaskStack,
+                                  (StaticTask_t *)  &StartTaskTCB );
+
+
+  // vTaskStartScheduler();          //开启任务调度
+}
+
+
+void start_task( void * pvParameters )
+{
+    StartTask_Handler = xTaskCreateStatic( (TaskFunction_t)  start_task,
+                                  (char *        ) "start_task",
+                                  (uint32_t      )  START_STK_SIZE,
+                                  (void *        )  NULL,
+                                  (UBaseType_t   )  START_TASK_PRIO,
+                                  (StackType_t * )  StartTaskStack,
+                                  (StaticTask_t *)  &StartTaskTCB );
+																	
+																	
+															StartTask_Handler = xTaskCreateStatic( (TaskFunction_t)  start_task,
+                                  (char *        ) "start_task",
+                                  (uint32_t      )  START_STK_SIZE,
+                                  (void *        )  NULL,
+                                  (UBaseType_t   )  START_TASK_PRIO,
+                                  (StackType_t * )  StartTaskStack,
+                                  (StaticTask_t *)  &StartTaskTCB );
+}
