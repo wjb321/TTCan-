@@ -14,3 +14,6 @@ is ocuppied by low task, and the high task is in pending, the low priority will 
 priority as the high task, which reduce the chance that the middle task take the cpu and runs.
 
 then the final status is high task is pending the semaphore till low task give its mutex semaphore.
+
+3. there is also another mutexSemaphore: xSemaphoreTakeRecursive(); should check the differences with
+   2.
