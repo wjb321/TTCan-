@@ -11,3 +11,4 @@ high keeps waiting until it gets the semaphore.
 
 so finally: high and low has same priority, while middle has the highest priority. 
 now we say, it is the prioriry flipping
+there are the differences between binarySemaphore and mutex:https://blog.csdn.net/wanruoqingkong/article/details/36006921
