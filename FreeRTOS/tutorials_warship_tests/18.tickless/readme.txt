@@ -1,5 +1,5 @@
 0. 
-#define configUSE_TICKLESS_IDLE					1                       //1ÆôÓÃµÍ¹¦ºÄticklessÄ£Ê½
+#define configUSE_TICKLESS_IDLE					1                       //1å¯ç”¨ä½åŠŸè€—ticklessæ¨¡å¼
 
 1.
 //low power mode in freeRTOSConfig.h
@@ -15,10 +15,10 @@ extern void PostSleepProcessing(uint32_t xExpectedIdleTime);
    if do not close this interrupt, then every 50us the system will be waked up.
    so make sure close some fast interrupts or unnecessary interrupts.
    
-   //#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()  ConfigureTimeForRunTimeStats()//¶¨Ê±Æ÷3Ìá¹©Ê±¼äÍ³¼ÆµÄÊ±»ù£¬ÆµÂÊÎª10K£¬¼´ÖÜÆÚÎª100us
-//#define portGET_RUN_TIME_COUNTER_VALUE()		FreeRTOSRunTimeTicks	//»ñÈ¡Ê±¼äÍ³¼ÆÊ±¼äÖµ
+   //#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()  ConfigureTimeForRunTimeStats()//å®šæ—¶å™¨3æä¾›æ—¶é—´ç»Ÿè®¡çš„æ—¶åŸºï¼Œé¢‘ç‡ä¸º10Kï¼Œå³å‘¨æœŸä¸º100us
+//#define portGET_RUN_TIME_COUNTER_VALUE()		FreeRTOSRunTimeTicks	//è·å–æ—¶é—´ç»Ÿè®¡æ—¶é—´å€¼
 
 
 
 4.[check again need] if write printf() in PostSleepProcessing() or void PreSleepProcessing(uint32_t xExpectedIdleTime); it will make serial printing
-   all the time, can not receicing command anymore. just because printf causes interrupts???
+   all the time, can not receice commands(Tx: led1on, beepon...) anymore. just because printf causes interrupts???
