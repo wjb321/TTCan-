@@ -42,7 +42,7 @@ void eventquery_task(void *pvParameters);
 
 
 
-EventGroupHandle_t EventGroupHandler;	//ÊÂ¼ş±êÖ¾×é¾ä±ú
+EventGroupHandle_t EventGroupHandler;	//äº‹ä»¶æ ‡å¿—ç»„å¥æŸ„
 
 #define EVENTBIT_0	(1<<0)				//according to the location, left shift 0,1,2 length
 #define EVENTBIT_1	(1<<1)
@@ -53,14 +53,14 @@ EventGroupHandle_t EventGroupHandler;	//ÊÂ¼ş±êÖ¾×é¾ä±ú
 
 int main(void)
 {
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);//ÉèÖÃÏµÍ³ÖĞ¶ÏÓÅÏÈ¼¶·Ö×é4	 
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);//è®¾ç½®ç³»ç»Ÿä¸­æ–­ä¼˜å…ˆçº§åˆ†ç»„4	 
 	delay_init();	    				
 	uart_init(115200);					
 	LED_Init();		  					
 	KEY_Init();							
 	EXTIX_Init();						
 	BEEP_Init();					
-	my_mem_init(SRAMIN);            	//³õÊ¼»¯ÄÚ²¿ÄÚ´æ³Ø
+	my_mem_init(SRAMIN);            	//åˆå§‹åŒ–å†…éƒ¨å†…å­˜æ± 
 
 	
 
@@ -73,7 +73,7 @@ int main(void)
     vTaskStartScheduler();          //start the task scheduler
 }
 
-//¿ªÊ¼ÈÎÎñÈÎÎñº¯Êı
+//å¼€å§‹ä»»åŠ¡ä»»åŠ¡å‡½æ•°
 void start_task(void *pvParameters)
 {
     taskENTER_CRITICAL();           
@@ -109,7 +109,7 @@ void start_task(void *pvParameters)
 }
 
 
-//ÉèÖÃÊÂ¼şÎ»µÄÈÎÎñ
+//è®¾ç½®äº‹ä»¶ä½çš„ä»»åŠ¡
 void eventsetbit_task(void *pvParameters)
 {
 	u8 key;
@@ -129,11 +129,11 @@ void eventsetbit_task(void *pvParameters)
 					break;	
 			}
 		}
-        vTaskDelay(10); //ÑÓÊ±10ms£¬Ò²¾ÍÊÇ10¸öÊ±ÖÓ½ÚÅÄ
+        vTaskDelay(10); //å»¶æ—¶10msï¼Œä¹Ÿå°±æ˜¯10ä¸ªæ—¶é’ŸèŠ‚æ‹
 	}
 }
 
-//ÊÂ¼ş±êÖ¾×é´¦ÀíÈÎÎñ
+//äº‹ä»¶æ ‡å¿—ç»„å¤„ç†ä»»åŠ¡
 void eventgroup_task(void *pvParameters)
 {
 	u8 num;
@@ -147,28 +147,26 @@ void eventgroup_task(void *pvParameters)
 			//some task may need synchronze with more events, so this task should
 			//wait and judge many event bits. so if the events bits are not set to
 			//1,wait for it till it is ready.
-			EventValue=xEventGroupWaitBits((EventGroupHandle_t	)EventGroupHandler,		// the event group that is waiting for
-										                 (EventBits_t			    )EVENTBIT_ALL,        // specify the bit that wait for
-			                            
-										                 (BaseType_t		    	)pdTRUE , //clearOnExit, if it is false, then it coverage the marker, so it is set to 1 all the time.
-    /*
-              			                 before exit this function, uxBitToWaitFor that configured will be reset to zero
-			                               if any bit set to 1, then the values shows: just set fifth parameter to pdFALSE
-			                                */			
-										                 (BaseType_t			    )pdFALSE, //pdTRUE,             // 
-								                     (TickType_t			    )portMAX_DELAY);	    // set the delay time
+			EventValue=xEventGroupWaitBits((EventGroupHandle_t)EventGroupHandler,	// the event group that is waiting for
+	                                               (EventBits_t)EVENTBIT_ALL, // specify the bit that wait for
+			                               (BaseType_t)pdTRUE , //clearOnExit, if it is false, then it coverage the marker, so it is set to 1 all the time.
+    /*before exit this function, uxBitToWaitFor that configured will be reset to zero
+if any bit set to 1, then the values shows: just set fifth parameter to pdFALSE */	
+			                               (BaseType_t)pdFALSE, //anyone pressed can set now. pdTRUE,all bits should be set. 
+						       //decide all the bit should be set all only one has to be 
+						       (TickType_t)portMAX_DELAY);// set the delay time
 			printf("all bits set 1 and EventValue is %#x\r\n",EventValue);
 			num++;
 			LED1=!LED1;	
 		}
 		else
 		{
-			vTaskDelay(10); //ÑÓÊ±10ms£¬Ò²¾ÍÊÇ10¸öÊ±ÖÓ½ÚÅÄ
+			vTaskDelay(10); //å»¶æ—¶10msï¼Œä¹Ÿå°±æ˜¯10ä¸ªæ—¶é’ŸèŠ‚æ‹
 		}
 	}
 }
 
-////ÊÂ¼ş²éÑ¯ÈÎÎñ
+////äº‹ä»¶æŸ¥è¯¢ä»»åŠ¡
 //void eventquery_task(void *pvParameters)
 //{	
 //	u8 num=0;
@@ -185,12 +183,12 @@ void eventgroup_task(void *pvParameters)
 //			}
 //		}
 //		num++;
-//		if(num==10) 	//Ã¿500msLED0ÉÁË¸Ò»´Î
+//		if(num==10) 	//æ¯500msLED0é—ªçƒä¸€æ¬¡
 //		{
 //			num=0;
 //			LED0=!LED0;	
 //		}
-//		vTaskDelay(50); //ÑÓÊ±50ms£¬Ò²¾ÍÊÇ50¸öÊ±ÖÓ½ÚÅÄ
+//		vTaskDelay(50); //å»¶æ—¶50msï¼Œä¹Ÿå°±æ˜¯50ä¸ªæ—¶é’ŸèŠ‚æ‹
 //	}
 //}
 
