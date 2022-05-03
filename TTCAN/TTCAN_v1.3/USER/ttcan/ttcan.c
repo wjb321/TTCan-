@@ -164,9 +164,9 @@ void MesTransmit()
           if(Node2MesIDList[i] == Received_mes_id[NumBC][interrupt_sos_times])
             {
 
-             // printf("the value in the ID list is i=%d  Node1MesIDList=  %#x \r\n",i, Node2MesIDList[i]);
+             printf("the value in the ID list is i=%d  Node1MesIDList=  %#x \r\n",i, Node2MesIDList[i]);
               NodeMesTransmit(Node2MesIDList[i]);
-             // printf("the value in the Received_mes_id[][] is %#x \r\n",Received_mes_id[NumBC][interrupt_sos_times]);
+             printf("then the given Received_mes_id[][] is %#x \r\n",Received_mes_id[NumBC][interrupt_sos_times]);
             }
         }
 
