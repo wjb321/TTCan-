@@ -35,28 +35,28 @@ extern uint8_t   SlaveNode1Flag;
 extern uint8_t   SlaveNode2Flag;
 
 /*master only*/
-// origin matrix which is going to send
-//uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x2623, 0x2620,0x2624,0},
-//  {0x0001, 0x2623, 0x2622, 0x2621, 0},
-//  {0x0001, 0x2623, 0x2620, 0x2624, 0},
-//  {0x0001, 0x2623, 0x2622, 0x2625, 0}
-//};
+ //origin matrix which is going to send
 
+// standard ID
 //uint16_t  mes_id[TotNumBC][NumSlot] = {{0x001, 0x123, 0x120, 0x120,0},
 //  {0x001, 0x123, 0x121, 0x121, 0},
 //  {0x001, 0x123, 0x121, 0x121, 0},
 //  {0x001, 0x123, 0x122, 0x122, 0}
 //};
-////uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x2624, 0x2621, 0x2624,0},
-////  {0x0001, 0x2621, 0x2621, 0x2622, 0},
-////  {0x0001, 0x2624, 0x2623, 0x2623, 0},
-////  {0x0001, 0x2621, 0x2624, 0x2622, 0}
-////};
 //uint8_t is_exclusive_window[TotNumBC][NumSlot] = {{1, 1, 1, 1,0},
 //  {1, 1, 1, 1,0},
 //  {1, 1, 1, 1,0},
 //  {1, 1, 1, 1,0}
 //};
+
+//extend ID
+//uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x2624, 0x2621, 0x2624,0},
+//  {0x0001, 0x2621, 0x2621, 0x2622, 0},
+//  {0x0001, 0x2624, 0x2623, 0x2623, 0},
+//  {0x0001, 0x2621, 0x2624, 0x2622, 0}
+//};
+
+// small SM
 uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x123 },//0x123, 0x120,0},
                                        {0x0001, 0x123 },//0x121, 0x123, 0},
                                        {0x0001, 0x123 },//0x123, 0x121, 0},
@@ -211,7 +211,16 @@ void TimerSlotSet()
             }
         }
     }
-  printf("timer list are: [%d, %d, %d] \r\n", TimerArray[0], TimerArray[1], TimerArray[2]);
+			printf("timer list are:");
+			printf("(");
+		for (int TimerArrayValue = 0; TimerArrayValue < TimerArray_i;  TimerArrayValue ++)
+		{
+		
+			printf("%d ", TimerArray[TimerArrayValue]);
+		
+		}
+			printf(") \r\n");
+  
 }
 
 
@@ -349,7 +358,7 @@ int TimerISR()  //uint16_t *
   for(int w =0; w< BCMestimes; w++ ) //始终不考虑第一位，所以p从1开始
     {
       finalTimerValue[0] = tempTimerValue[0]; //最终时间表的第一个消息时间和临时时间表是一致的，所以不进入循环
-      if(w > 1)
+      if(w >= 1)
         {
           //printf(" 1111111111111111111\r\n");
           finalTimerValue[w] =   tempTimerValue[w] - tempTimerValue[w-1];

@@ -59,7 +59,8 @@ void Node0()
   /*SM sending time*/
   TIM3_Int_Init(1999,7199,ENABLE);//10Khz的计数频率，计数到5000为500ms, 4999 for sm time, 14999 for BC time
   /*BC sending time*/
-  TIM2_Int_Init(32000,7199,DISABLE) ; // arr_sm is for sm sending, BC is for Basic cycle sending
+  TIM2_Int_Init(109,7199,DISABLE) ; // arr_sm is for sm sending, BC is for Basic cycle sending
+	//500 is 50ms
   MasterNodeFlag = 1;
   /* Infinite loop */
   while (1)
@@ -125,16 +126,14 @@ void Node1()
           printf("**ref_info_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
 //          printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
 //          printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
-          printf("************ %d. reference ends********** \r\n",NumBC);
           MesTimesInBC = TimerISR();
           TimerSlotSet();	// print timer array is:...
           temp_receive_id= Received_mes_id[NumBC][1];//NumBC
           first_mes_after_ref = MesTransmitTime(temp_receive_id);
-          printf("first_mes_after_ref is %d \r\n", first_mes_after_ref);
-          //T3 for counting the time slots
-          printf("finalTimerValue[0] is %d \r\n", finalTimerValue[0]);
-          printf("finalTimerValue[1] is %d \r\n", finalTimerValue[1]);
-          printf("finalTimerValue[2] is %d \r\n", finalTimerValue[2]);
+          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+            {
+              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+            }
 //          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
           if(MesTimesInBC !=0)
             {
@@ -202,6 +201,7 @@ void Node1()
           printf("#$#$#$#$#$#$#$#Reiceive message from CANRx_ID: %#x #$#$#$#$#$#$#$# \r\n", CANRx_ID);
           printf("**receive_(data0,data1,data2,data3,data4,data5) = (%#x, %#x, %#x, %#x, %#x, %#x )** \r\n",Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5);
           printf("++++++++message finish sending++++++++++ \r\n");
+					 printf(" \r\n");
           CanRxFlag = DISABLE;
         }
 
@@ -253,11 +253,11 @@ void Node2()
           temp_receive_id= Received_mes_id[NumBC][1];//NumBC
           first_mes_after_ref = MesTransmitTime(temp_receive_id);
           //T3 for counting the time slots
-					for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
-						{
-							  printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
-						}
-        
+          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+            {
+              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+            }
+
 //          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
           if(MesTimesInBC !=0)
             {
@@ -266,7 +266,7 @@ void Node2()
                   printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
                   // printf("messages should be sent directly after BC comes \r\n");
                   NodeMesTransmit(Received_mes_id[NumBC][1]);
-									if(MesTimesInBC > 1)
+                  if(MesTimesInBC > 1)
                     {
                       TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
                     }
@@ -321,7 +321,7 @@ void Node2()
           printf("#$#$#$#$#$#$#$#Reiceive message from CANRx_ID: %#x #$#$#$#$#$#$#$# \r\n", CANRx_ID);
           printf("**receive_(data0,data1,data2,data3,data4,data5) = (%#x, %#x, %#x, %#x, %#x, %#x )** \r\n",Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5);
           printf("++++++++message finish sending++++++++++ \r\n");
-					printf(" \r\n");
+          printf(" \r\n");
           CanRxFlag = DISABLE;
         }
 

@@ -180,7 +180,7 @@ void NodeMesTransmit(uint16_t ID)
 //  TxMessage.Data[6] = CAN_DATA6;
 //  TxMessage.Data[7] = CAN_DATA7;
   box = CAN_Transmit(CAN1,&TxMessage);  /* 返回这个信息请求发送的邮箱号0,1,2或没有邮箱申请发送no_box */
-  delay_ms(100);
+  delay_ms(1);
   /* transmit message wang adds */
   while(CAN_TransmitStatus(CAN1,box) == CANTXFAILED);
   printf(">>>>>ID  %#x is sent<<<<<\r\n", ID);

@@ -98,3 +98,10 @@ slave node2 : 0x01 0x123 0x122 0x121 0 in all the BC, so there is no need to ena
 b. 
 when changing the matrix: ->> ttcan.h  ->> configure the NumSlot ->> change the matrix in ttcan.c:  mes_id and  is_exclusive_window arrays ->> main.c
 switch MasterNode, uploading, switch SlaveNode1/2 uploading.
+
+c.
+be careful when uploading to different nodes, switch should be changed repestively!!!
+
+d.
+create sm with only one exclusive window.and the values are always same. do the test, the BC timer set 10ms can make sure the all the values cam be safely
+sent. if it is faster than 11 ms, some BCs, message can not be sent. checke node0 -> timer2: configure with 110.
