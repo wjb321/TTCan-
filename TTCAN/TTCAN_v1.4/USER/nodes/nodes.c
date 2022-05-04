@@ -33,7 +33,6 @@ extern uint16_t  Received_mes_id[TotNumBC][NumSlot];
 extern uint8_t received_is_exclusive_window[TotNumBC][NumSlot];
 extern uint16_t SM_received_counter; // from isr
 extern uint16_t SOS_ISR_flag;
-// timer array need to be changed when matrix is changed
 extern uint16_t TimerArray[NumSlot-1];
 extern uint16_t finalTimerValue[NumSlot];
 extern int finalTimerArrayShift_Nonzero;
@@ -94,7 +93,7 @@ void Node0()
 void Node1()
 {
   CAN_Configuration();
-	SlaveNode1Flag = 1;
+  SlaveNode1Flag = 1;
   printf("\r\n");
   printf("*****************************************************************\r\n");
   printf("*                                                               *\r\n");
@@ -131,21 +130,25 @@ void Node1()
           TimerSlotSet();	// print timer array is:...
           temp_receive_id= Received_mes_id[NumBC][1];//NumBC
           first_mes_after_ref = MesTransmitTime(temp_receive_id);
-					printf("first_mes_after_ref is %d \r\n", first_mes_after_ref);
+          printf("first_mes_after_ref is %d \r\n", first_mes_after_ref);
           //T3 for counting the time slots
           printf("finalTimerValue[0] is %d \r\n", finalTimerValue[0]);
           printf("finalTimerValue[1] is %d \r\n", finalTimerValue[1]);
-//          printf("finalTimerValue[2] is %d \r\n", finalTimerValue[2]);
+          printf("finalTimerValue[2] is %d \r\n", finalTimerValue[2]);
 //          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
           if(MesTimesInBC !=0)
             {
               if(finalTimerValue[0]== 0)
                 {
-                  printf("++++++++ %d NumBc first message is sent:++++++++++ \r\n", NumBC);
-                 // printf("messages should be sent directly after BC comes \r\n");
+                  printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
+                  // printf("messages should be sent directly after BC comes \r\n");
                   NodeMesTransmit(Received_mes_id[NumBC][1]);
-                  TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
-                  printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
+                  if(MesTimesInBC > 1)
+                    {
+                      TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
+                    }
+
+                  //  printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
                   printf("++++++++Column =1:for message finish++++++++++ \r\n");
                 }
               else
@@ -159,7 +162,7 @@ void Node1()
             }
           //NodeMesTransmit(Received_mes_id[NumBC][1]);
 
-          //interrupt_sos_times =1;
+          interrupt_sos_times =1;
           NumBC++;
 
           if(NumBC > TotNumBC)   //3>= 3 // -1  //0
@@ -210,7 +213,7 @@ void Node1()
 void Node2()
 {
   CAN_Configuration();
-	SlaveNode2Flag = 1;
+  SlaveNode2Flag = 1;
   printf("\r\n");
   printf("*****************************************************************\r\n");
   printf("*                                                               *\r\n");
@@ -243,24 +246,30 @@ void Node2()
           printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
           //printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
           //printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
+          printf("************ %d. reference start********** \r\n",NumBC);
           MesTimesInBC = TimerISR();
 
           TimerSlotSet();	// print timer array is:...
           temp_receive_id= Received_mes_id[NumBC][1];//NumBC
           first_mes_after_ref = MesTransmitTime(temp_receive_id);
           //T3 for counting the time slots
-//          printf("finalTimerValue[0] is %d \r\n", finalTimerValue[0]);
-//          printf("finalTimerValue[1] is %d \r\n", finalTimerValue[1]);
-//          printf("finalTimerValue[2] is %d \r\n", finalTimerValue[2]);
+					for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+						{
+							  printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+						}
+        
 //          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
           if(MesTimesInBC !=0)
             {
               if(finalTimerValue[0]== 0)
                 {
                   printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
-                 // printf("messages should be sent directly after BC comes \r\n");
+                  // printf("messages should be sent directly after BC comes \r\n");
                   NodeMesTransmit(Received_mes_id[NumBC][1]);
-                  TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
+									if(MesTimesInBC > 1)
+                    {
+                      TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
+                    }
                   //printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
                   printf("++++++++Column =1:for message finish++++++++++ \r\n");
                 }
@@ -309,7 +318,7 @@ void Node2()
       if(CanRxFlag == ENABLE )
         {
           LEDA1 = !LEDA1;
-          printf("###### Reiceive message from CANRx_ID: %#x ###### \r\n", CANRx_ID);
+          printf("#$#$#$#$#$#$#$#Reiceive message from CANRx_ID: %#x #$#$#$#$#$#$#$# \r\n", CANRx_ID);
           printf("**receive_(data0,data1,data2,data3,data4,data5) = (%#x, %#x, %#x, %#x, %#x, %#x )** \r\n",Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5);
           printf("++++++++message finish sending++++++++++ \r\n");
 					printf(" \r\n");

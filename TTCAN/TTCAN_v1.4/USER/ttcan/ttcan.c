@@ -5,43 +5,69 @@
 #include "can_config.h"
 //#include <numeric>
 
-
-/* slave only start */
-
-// the intialized matrix which will store the sent matrix.
 uint16_t NumOfSlot_flag = 0;
 uint16_t Slot_ISR_Timer = 4999;
 uint64_t node_time = 0;
 uint64_t timeTx =0;
 uint8_t NumBC = 0;
 
-/*change to NumSlot to 3*/
-uint16_t TimerArray[NumSlot-1] = {0}; 
-//uint16_t TimerArray[NumSlot-2] = {0,0,0}; // -2 is because RefCol and ArbCol wont take into consideration
-
-
+uint16_t TimerArray[NumSlot-1] ;//= {0,0,0}; // -2 is because RefCol and ArbCol wont take into consideration
 uint16_t Node1MesIDList[3] = {mes1_ID, mes2_ID, mes3_ID};
 uint16_t Node2MesIDList[3] = {mes4_ID, mes5_ID, mes6_ID};
-uint16_t  Received_mes_id[TotNumBC][NumSlot] = {1};
-uint8_t received_is_exclusive_window[TotNumBC][NumSlot] = {0};
-uint16_t finalTimerValue[NumSlot] = {0}; // 保存每个信息时间从BC开始的值，exp [a,a+b, a+b+c+d,.....]
-uint16_t selected_ID = 0;
-uint16_t mes_ids[4][4] = {0};  
-int TimerArrayLocation = 0; //将数据位置从receivedID中转换到timerArray 上的位置
-int IDsInOneBC[TotNumBC] = {0};
-int finalTimerArrayShift_Nonzero = 1; // 标志最终时间数组中没有从0 开始的情况[200, 300, XXX, ...]
-int finalTimerArrayShift_zero = 1; // 标志最终时间数组中没有从0 开始的情况[0, 300, XXX,...]
-int IDsInOneBC_shift_Nonzero = 0;
-int IDsInOneBC_shift_zero = 1;
-
+//uint16_t Node2MesIDList[3] = {mes4_ID, mes5_ID, mes6_ID};
 extern uint16_t SOS_ISR_flag;
 extern uint16_t interrupt_sos_times;
 extern int MesTimesInBC;
 extern uint64_t ref_time;
 extern uint8_t Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5,Rx0_DATA6,Rx0_DATA7;
 extern uint8_t Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5,Rx1_DATA6,Rx1_DATA7;
+
+/*slave only */
+// the intialized matrix which will store the sent matrix.
+uint16_t  Received_mes_id[TotNumBC][NumSlot] = {1};
+uint8_t received_is_exclusive_window[TotNumBC][NumSlot] = {0};
+uint16_t finalTimerValue[NumSlot] = {0}; // 保存每个信息时间从BC开始的值，exp [a,a+b, a+b+c+d,.....]
+uint16_t selected_ID = 0;
+uint16_t mes_ids[4][4] = {0};
+int TimerArrayLocation = 0; //将数据位置从receivedID中转换到timerArray 上的位置
+int IDsInOneBC[TotNumBC] = {0};
 extern uint8_t   SlaveNode1Flag;
 extern uint8_t   SlaveNode2Flag;
+
+/*master only*/
+// origin matrix which is going to send
+//uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x2623, 0x2620,0x2624,0},
+//  {0x0001, 0x2623, 0x2622, 0x2621, 0},
+//  {0x0001, 0x2623, 0x2620, 0x2624, 0},
+//  {0x0001, 0x2623, 0x2622, 0x2625, 0}
+//};
+
+//uint16_t  mes_id[TotNumBC][NumSlot] = {{0x001, 0x123, 0x120, 0x120,0},
+//  {0x001, 0x123, 0x121, 0x121, 0},
+//  {0x001, 0x123, 0x121, 0x121, 0},
+//  {0x001, 0x123, 0x122, 0x122, 0}
+//};
+////uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x2624, 0x2621, 0x2624,0},
+////  {0x0001, 0x2621, 0x2621, 0x2622, 0},
+////  {0x0001, 0x2624, 0x2623, 0x2623, 0},
+////  {0x0001, 0x2621, 0x2624, 0x2622, 0}
+////};
+//uint8_t is_exclusive_window[TotNumBC][NumSlot] = {{1, 1, 1, 1,0},
+//  {1, 1, 1, 1,0},
+//  {1, 1, 1, 1,0},
+//  {1, 1, 1, 1,0}
+//};
+uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x123 },//0x123, 0x120,0},
+                                       {0x0001, 0x123 },//0x121, 0x123, 0},
+                                       {0x0001, 0x123 },//0x123, 0x121, 0},
+                                       {0x0001, 0x123 }};//0x122, 0x124, 0}
+
+uint16_t is_exclusive_window[TotNumBC][NumSlot] = {{1, 1},//1, 1,0},
+  {1, 1},//, 1, 1,0},
+  {1, 1},//, 1, 1,0},
+  {1, 1},//, 1, 1,0}
+};
+
 // message lists with the period and transmission time. 0, mesID; 1, period; 2, transmission time;
 // the list can be the benchmark for the all the information, can store in all the nodes
 uint16_t  Mes_list[NumMes][MesList] = {{0x123, 10000, 7000},//
@@ -52,47 +78,15 @@ uint16_t  Mes_list[NumMes][MesList] = {{0x123, 10000, 7000},//
   {0x121, 50000, 2300}
 };
 
-
-/* slave only ends */
-
-
-/*master only start */
-uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x123},//0x123, 0x120,0},
-                                       {0x0001, 0x123},//0x121, 0x123, 0},
-                                       {0x0001, 0x123},//0x123, 0x121, 0},
-                                       {0x0001, 0x123}};//0x122, 0x124, 0}
-
-uint16_t is_exclusive_window[TotNumBC][NumSlot] = {{1, 1},//1, 1,0},
-  {1, 1},//, 1, 1,0},
-  {1, 1},//, 1, 1,0},
-  {1, 1},//, 1, 1,0}
-};
-
-
-//uint16_t  mes_id[TotNumBC][NumSlot] = {{0x001, 0x122, 0x123, 0x120,0},
-//  {0x001, 0x123, 0x121, 0x123, 0},
-//  {0x001, 0x122, 0x123, 0x121, 0},
-//  {0x001, 0x121, 0x122, 0x124, 0}
-//};
-//uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x2624, 0x2621, 0x2624,0},
-//  {0x0001, 0x2621, 0x2621, 0x2622, 0},
-//  {0x0001, 0x2624, 0x2623, 0x2623, 0},
-//  {0x0001, 0x2621, 0x2624, 0x2622, 0}
-//};
-//uint8_t is_exclusive_window[TotNumBC][NumSlot] = {{1, 1, 1, 1,0},
-//  {1, 1, 1, 1,0},
-//  {1, 1, 1, 1,0},
-//  {1, 1, 1, 1,0}
-//};
-/*master only end */
-
-
-
+int finalTimerArrayShift_Nonzero = 1; // 标志最终时间数组中没有从0 开始的情况[200, 300, XXX, ...]
+int finalTimerArrayShift_zero = 1; // 标志最终时间数组中没有从0 开始的情况[0, 300, XXX,...]
+int IDsInOneBC_shift_Nonzero = 0;
+int IDsInOneBC_shift_zero = 1;
 uint16_t SOS_ID()
 {
   if(finalTimerValue[0]== 0)
     {
-      //printf("!!!!!!! finalTimerValue[0]== 0: NumBC: %d first message is sent:!!!!!!!\r\n", NumBC-1);
+      printf("!!!!!!! finalTimerValue[0]== 0: NumBC: %d first message is sent:!!!!!!!\r\n", NumBC-1);
       NodeMesTransmit(Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_zero]]);
       //printf("this message %#x is sent. \r\n",Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_zero]]);
       //printf("IDsInOneBC[finalTimerArrayShift_zero] is %d\r\n", IDsInOneBC[finalTimerArrayShift_zero]);
@@ -113,7 +107,7 @@ uint16_t SOS_ID()
     }
   else
     {
-      //printf("!!!!!!! finalTimerValue[0]!= 0: NumBC-1: %d first message is sent:!!!!!!!\r\n", NumBC-1);
+      printf("!!!!!!! finalTimerValue[0]!= 0: NumBC-1: %d first message is sent:!!!!!!!\r\n", NumBC-1);
       NodeMesTransmit(Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_Nonzero-1]]);
      // printf("this message %#x is sent. \r\n",Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_Nonzero-1]]);
       //printf("IDsInOneBC[finalTimerArrayShift_Nonzero] is %d\r\n", IDsInOneBC[finalTimerArrayShift_Nonzero]);
@@ -137,7 +131,7 @@ uint16_t SOS_ID()
   // SOS_ISR_Count++;
 
   //将来就在此处通过对应的Reiceived mes 中的值进行设置来进行判断从而进行其是属于哪一个node,然后进行操作。
- // printf("send ID:[NumBC-1, interrupt_sos_times] = [%d , %d] \r\n", NumBC-1, interrupt_sos_times);
+  printf("send ID:[NumBC-1, interrupt_sos_times] = [%d , %d] \r\n", NumBC-1, interrupt_sos_times);
   return  Received_mes_id[NumBC][interrupt_sos_times];
 }
 
@@ -180,9 +174,9 @@ void MesTransmit()
           if(Node2MesIDList[i] == Received_mes_id[NumBC][interrupt_sos_times])
             {
 
-             printf("the value in the ID list is i=%d  Node1MesIDList=  %#x \r\n",i, Node2MesIDList[i]);
+             // printf("the value in the ID list is i=%d  Node1MesIDList=  %#x \r\n",i, Node2MesIDList[i]);
               NodeMesTransmit(Node2MesIDList[i]);
-             printf("then the given Received_mes_id[][] is %#x \r\n",Received_mes_id[NumBC][interrupt_sos_times]);
+             // printf("the value in the Received_mes_id[][] is %#x \r\n",Received_mes_id[NumBC][interrupt_sos_times]);
             }
         }
 
@@ -217,8 +211,7 @@ void TimerSlotSet()
             }
         }
     }
-  //printf("timer list are: [%d, %d, %d] \r\n", TimerArray[0], TimerArray[1], TimerArray[2]);
-		printf("timer list are: [%d] \r\n", TimerArray[0]);
+  printf("timer list are: [%d, %d, %d] \r\n", TimerArray[0], TimerArray[1], TimerArray[2]);
 }
 
 
@@ -287,6 +280,8 @@ int TimerISR()  //uint16_t *
         }
     }
   //printf("###tempMesLocation_x###%d\r\n", tempMesLocation_x);
+
+/*show nodes message location in received matrix*/
 		
 //  for(int m =0; m<tempMesLocation_x; m++)
 //    {
@@ -354,7 +349,7 @@ int TimerISR()  //uint16_t *
   for(int w =0; w< BCMestimes; w++ ) //始终不考虑第一位，所以p从1开始
     {
       finalTimerValue[0] = tempTimerValue[0]; //最终时间表的第一个消息时间和临时时间表是一致的，所以不进入循环
-      if(w >= 1)
+      if(w > 1)
         {
           //printf(" 1111111111111111111\r\n");
           finalTimerValue[w] =   tempTimerValue[w] - tempTimerValue[w-1];
@@ -364,7 +359,7 @@ int TimerISR()  //uint16_t *
       // printf(" 1, finaltimer should be %d \r\n",finalTimerValue[1]);
      // printf("finaltimer should be %d \r\n",finalTimerValue[w]);
     }
- // printf("tempMesLocation_x(messages times in one BC) should be %d \r\n",BCMestimes);
+  printf("tempMesLocation_x(messages times in one BC) should be %d \r\n",BCMestimes);
   return BCMestimes;
 
 }
