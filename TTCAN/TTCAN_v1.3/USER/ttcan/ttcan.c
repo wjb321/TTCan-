@@ -76,7 +76,7 @@ uint16_t SOS_ID()
 {
   if(finalTimerValue[0]== 0)
     {
-      printf("!!!!!!! finalTimerValue[0]== 0: NumBC: %d first message is sent:!!!!!!!\r\n", NumBC-1);
+      //printf("!!!!!!! finalTimerValue[0]== 0: NumBC: %d first message is sent:!!!!!!!\r\n", NumBC-1);
       NodeMesTransmit(Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_zero]]);
       //printf("this message %#x is sent. \r\n",Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_zero]]);
       //printf("IDsInOneBC[finalTimerArrayShift_zero] is %d\r\n", IDsInOneBC[finalTimerArrayShift_zero]);
@@ -97,7 +97,7 @@ uint16_t SOS_ID()
     }
   else
     {
-      printf("!!!!!!! finalTimerValue[0]!= 0: NumBC-1: %d first message is sent:!!!!!!!\r\n", NumBC-1);
+      //printf("!!!!!!! finalTimerValue[0]!= 0: NumBC-1: %d first message is sent:!!!!!!!\r\n", NumBC-1);
       NodeMesTransmit(Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_Nonzero-1]]);
      // printf("this message %#x is sent. \r\n",Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_Nonzero-1]]);
       //printf("IDsInOneBC[finalTimerArrayShift_Nonzero] is %d\r\n", IDsInOneBC[finalTimerArrayShift_Nonzero]);
@@ -121,7 +121,7 @@ uint16_t SOS_ID()
   // SOS_ISR_Count++;
 
   //将来就在此处通过对应的Reiceived mes 中的值进行设置来进行判断从而进行其是属于哪一个node,然后进行操作。
-  printf("send ID:[NumBC-1, interrupt_sos_times] = [%d , %d] \r\n", NumBC-1, interrupt_sos_times);
+ // printf("send ID:[NumBC-1, interrupt_sos_times] = [%d , %d] \r\n", NumBC-1, interrupt_sos_times);
   return  Received_mes_id[NumBC][interrupt_sos_times];
 }
 
@@ -257,7 +257,7 @@ int TimerISR()  //uint16_t *
                 }
               else if (SlaveNode2Flag == 1)
                 {
-                  if(tempMesID == Node1MesIDList[i])
+                  if(tempMesID == Node2MesIDList[i])
                     {
                       tempMesLocation[tempMesLocation_x][0]  = j;
                       tempMesLocation[tempMesLocation_x][1]  = k; // slotlocation
@@ -347,7 +347,7 @@ int TimerISR()  //uint16_t *
       // printf(" 1, finaltimer should be %d \r\n",finalTimerValue[1]);
      // printf("finaltimer should be %d \r\n",finalTimerValue[w]);
     }
-  printf("tempMesLocation_x(messages times in one BC) should be %d \r\n",BCMestimes);
+ // printf("tempMesLocation_x(messages times in one BC) should be %d \r\n",BCMestimes);
   return BCMestimes;
 
 }

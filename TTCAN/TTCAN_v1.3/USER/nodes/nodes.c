@@ -242,7 +242,6 @@ void Node2()
           printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
           //printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
           //printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
-          printf("************ %d. reference start********** \r\n",NumBC);
           MesTimesInBC = TimerISR();
 
           TimerSlotSet();	// print timer array is:...
@@ -309,9 +308,10 @@ void Node2()
       if(CanRxFlag == ENABLE )
         {
           LEDA1 = !LEDA1;
-          printf("#$#$#$#$#$#$#$#Reiceive message from CANRx_ID: %#x #$#$#$#$#$#$#$# \r\n", CANRx_ID);
+          printf("###### Reiceive message from CANRx_ID: %#x ###### \r\n", CANRx_ID);
           printf("**receive_(data0,data1,data2,data3,data4,data5) = (%#x, %#x, %#x, %#x, %#x, %#x )** \r\n",Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5);
           printf("++++++++message finish sending++++++++++ \r\n");
+					printf(" \r\n");
           CanRxFlag = DISABLE;
         }
 
