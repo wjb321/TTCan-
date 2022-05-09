@@ -113,3 +113,6 @@ how to increase the frequency.
 06.05.22
 think about  MesTimesInBC = TimerISR(); part how to update, first tempMesLocation is an array to store the nodes messages location in receiced_ID, this part is fixed, so do not need to call 
 everytime when BC comes.
+
+8.5.22
+try seperate TimerISR into 2 parts, which can save the time. but try the function seems does not work. now first try other parts.

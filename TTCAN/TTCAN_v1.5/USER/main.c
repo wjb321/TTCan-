@@ -24,7 +24,7 @@ int main(void)
   LED_Init();
   USART_Configuration();
  
-  switch(MasterNode) //SlaveNode2
+  switch(SlaveNode2) //SlaveNode2
     {
     case 0:
       Node0();

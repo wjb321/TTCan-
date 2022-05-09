@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "led.h"
-
+extern int tempMesLocation[TotNumBC*NumSlot][2];
 extern uint8_t Transmit_time_flag;
 extern uint8_t Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5,Rx0_DATA6,Rx0_DATA7;
 extern uint8_t Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5;
@@ -59,7 +59,7 @@ void Node0()
   /*SM sending time*/
   TIM3_Int_Init(1999,7199,ENABLE);//10Khz的计数频率，计数到5000为500ms, 4999 for sm time, 14999 for BC time
   /*BC sending time*/
-  TIM2_Int_Init(119,7199,DISABLE) ; // arr_sm is for sm sending, BC is for Basic cycle sending
+  TIM2_Int_Init(1699,7199,DISABLE) ; // arr_sm is for sm sending, BC is for Basic cycle sending // 169
   //500 is 50ms
   //50 is 5 ms, 1/5*10^(-3) = 200hz
   MasterNodeFlag = 1;
@@ -103,8 +103,8 @@ void Node1()
 //  printf("*                                                               *\r\n");
 //  printf("*****************************************************************\r\n");
   TIM3_Int_Init(3500,7199,DISABLE);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
- uint8_t Timerlist1flag = 1;
-	
+  uint8_t Timerlist1flag = 1;
+  tempMesLocationInSM LocationArray;
   while (1)
     {
       /*Reiceive SM from master node*/
@@ -113,7 +113,7 @@ void Node1()
           LEDC13 = !LEDC13;
           CanSMFlag = DISABLE;
           ReiceiveSM();
-		
+          
           NumBC =0;
         }
 
@@ -128,23 +128,23 @@ void Node1()
             }
           printf("************ %d. reference start********** \r\n",NumBC);
           printf("**ref_info_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
-															if(Timerlist1flag == 1)
-									{
-															MesTimesInBC = TimerISR();
-						 TimerSlotSet();	// print timer array is:...
-									Timerlist1flag = 0;	
-									}	
-									 MesTimesInBC = TimerISR();
-						 TimerSlotSet();	// print timer array is:...
-//          printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
-//          printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
-          //temp_receive_id= Received_mes_id[NumBC][1];//NumBC
-          //first_mes_after_ref = MesTransmitTime(temp_receive_id);
-//          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+//          if(Timerlist1flag == 1)
 //            {
-//              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+             // MesTimesInBC = TimerISR();
+            // TimerSlotSet();	// print timer array is:...
+//              Timerlist1flag = 0;
 //            }
-//          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
+					LocationArray = GetLocationInRxSM(tempMesLocation);
+						  for(int j = 0; j < TotNumBC; j++)
+    {
+      for(int k = 0; k < NumSlot; k++)
+        {
+
+					printf("LocationArray[][] is: %d \r\n", LocationArray[i][j]);
+        }
+    }
+					MesTimesInBC = TimesOfBCMes(LocationArray);	
+						TimerSlotSet();
           if(MesTimesInBC !=0)
             {
               if(finalTimerValue[0]== 0)
@@ -225,6 +225,7 @@ void Node2()
 {
   CAN_Configuration();
   SlaveNode2Flag = 1;
+	 tempMesLocationInSM LocationArray;
 //  printf("\r\n");
 //  printf("*****************************************************************\r\n");
 //  printf("*                                                               *\r\n");
@@ -232,7 +233,7 @@ void Node2()
 //  printf("*                                                               *\r\n");
 //  printf("*****************************************************************\r\n");
   TIM3_Int_Init(3500,7199,DISABLE);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
-  uint8_t Timerlist1flag = 1;
+  uint8_t Timerlist2flag = 1;
   //TimerSlotSet();	// print timer array is:...
   while (1)
     {
@@ -242,7 +243,7 @@ void Node2()
           LEDC13 = !LEDC13;
           CanSMFlag = DISABLE;
           ReiceiveSM();
-
+          
           NumBC =0;
         }
 
@@ -259,15 +260,35 @@ void Node2()
           printf("************ %d. reference start********** \r\n",NumBC);
 
           printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
-									if(Timerlist1flag == 1)
-									{
-															MesTimesInBC = TimerISR();
-						 TimerSlotSet();	// print timer array is:...
-									Timerlist1flag = 0;	
-									}										
-	
-						 // MesTimesInBC = TimerISR();
-						// TimerSlotSet();	// print timer array is:...
+         // if(Timerlist2flag == 1)
+//            {
+              //MesTimesInBC = TimerISR();
+             // TimerSlotSet();	// print timer array is:...
+//              Timerlist2flag = 0;
+//            }
+						  for(int j = 0; j < TotNumBC; j++)
+    {
+      for(int k = 0; k < NumSlot; k++)
+        {
+
+					printf("Received_mes_id[][] is: %#x\r\n ", Received_mes_id[i][j]);
+        }
+    }
+						LocationArray = GetLocationInRxSM(tempMesLocation);
+		        
+  for(int j = 0; j < TotNumBC; j++)
+    {
+      for(int k = 0; k < NumSlot; k++)
+        {
+
+					printf("LocationArray[][] is: %d\r\n ", LocationArray[i][j]);
+        }
+    }
+
+               MesTimesInBC = TimesOfBCMes(LocationArray);	
+//						TimerSlotSet();
+          // MesTimesInBC = TimerISR();
+          // TimerSlotSet();	// print timer array is:...
           //printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
           //printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
           //  printf("************ %d. reference start********** \r\n",NumBC);

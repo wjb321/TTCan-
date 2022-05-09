@@ -34,4 +34,9 @@ int TimerISR(void);
 uint16_t ArraySum(uint16_t * inputarray, uint16_t location);
 void meslocation(void);
 void FinalLocation(void);
+typedef int (* tempMesLocationInSM)[2];
+int TimesOfBCMes(tempMesLocationInSM tempMesLoca);
+
+tempMesLocationInSM GetLocationInRxSM(int b[][2]);
+
 #endif

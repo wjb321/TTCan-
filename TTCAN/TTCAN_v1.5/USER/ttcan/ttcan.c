@@ -292,12 +292,12 @@ int TimerISR()  //uint16_t *
 
 /*show nodes message location in received matrix*/
 		
-//  for(int m =0; m<tempMesLocation_x; m++)
-//    {
-//      printf("###jiabin wang###\r\n");
-//      printf("relavant mes location: (%d, %d)\r\n", tempMesLocation[m][0],tempMesLocation[m][1] );
-//      printf("@@@@@@@@@@@@@\r\n");
-//    }
+  for(int m =0; m<tempMesLocation_x; m++)
+    {
+      printf("###jiabin wang###\r\n");
+      printf("relavant mes location: (%d, %d)\r\n", tempMesLocation[m][0],tempMesLocation[m][1] );
+      printf("@@@@@@@@@@@@@\r\n");
+    }
 
   int BCMestimes=0;
   //int IDsInOneBC[TotNumBC] = {0}; 将其变成全局变量，因为每次调用此函数之后，都会从0进行复写，将之前的值擦除。

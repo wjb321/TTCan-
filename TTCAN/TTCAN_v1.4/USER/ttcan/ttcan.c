@@ -258,7 +258,105 @@ int Locationjump = 0;
 int tempMesLocation[TotNumBC*NumSlot][2];
 int tempMesLocation_y = 0;
 int tempTimerValue[NumSlot] = {0}; // 保存每个信息时间从BC开始的值，exp [a,a+b, a+b+c+d,.....]
-uint16_t everyBCmesTimes = 0;
+//typedef int (* tempMesLocationInSM)[2];
+//uint16_t everyBCmesTimes = 0;
+//tempMesLocationInSM GetLocationInRxSM(int b[][2])
+//{
+//	 int tempMesLocation_x = 0;
+//  uint16_t tempMesID = 0;
+
+//  for(int j = 0; j < TotNumBC; j++)
+//    {
+//      for(int k = 0; k < NumSlot; k++)
+//        {
+//          tempMesID = Received_mes_id[j][k];
+
+//              if( SlaveNode1Flag == 1)
+//                {
+//                  for(int i = 0; i <sizeof(Node1MesIDList)/sizeof(Node1MesIDList[0]); i++)
+//                    {
+//                      if(tempMesID == Node1MesIDList[i])
+//                        {
+//                          b[tempMesLocation_x][0]  = j;
+//                          b[tempMesLocation_x][1]  = k; // slotlocation
+//                          tempMesLocation_x++;
+//                        }
+//                    }
+//                 }
+//              else if (SlaveNode2Flag == 1)
+//                {
+//                  for(int i = 0; i <sizeof(Node2MesIDList)/sizeof(Node2MesIDList[0]); i++)
+//                    {
+//                      if(tempMesID == Node2MesIDList[i])
+//                        {
+//                          b[tempMesLocation_x][0]  = j;
+//                          b[tempMesLocation_x][1]  = k; // slotlocation
+//                          tempMesLocation_x++;
+//                        }
+//                    }
+
+//                }
+//        }
+//    }
+//	 //int tempLen = sizeof(b)/ sizeof(b[0]);  //4;//
+//	 // printf("###tempLen is %d ###\r\n", tempLen);
+//		return b;
+//}
+
+//int TimesOfBCMes(tempMesLocationInSM tempMesLoca)
+//{
+//	 int BCMestimes=0;
+//	 int tempLen = sizeof(tempMesLoca)/ sizeof(tempMesLoca[0]);  //4;//
+//	  printf("###tempLen is %d ###\r\n", tempLen);
+//  if(Locationjump >= tempLen )
+//    {
+//      Locationjump = 0;
+//    }
+
+//  for( int c =Locationjump; c<tempLen; c++) //可以选择去掉Locationjump，让变量一直从0遍历 tempInitMesLocation
+
+//    {
+//      if(tempMesLoca[c][0] == NumBC)
+//        {
+//          IDsInOneBC[BCMestimes] = tempMesLoca[c][1] ;
+//          BCMestimes ++;//得到在本BC下对应Node可发消息的个数
+//          Locationjump++; //已经从tempMesLocation中验证过的，下次就不必要再考虑，所以跳过去，这个变量值初始化是在global处，每次执行函数时候不需要清0；
+//        }
+
+//    }
+
+//  uint16_t   tempTimerStore[NumSlot] = {0}, ValueStoreCounter = 0;
+
+//  for(int q =0; q< BCMestimes; q++ )
+//    {
+
+//      TimerArrayLocation =IDsInOneBC[q]-1 ;//-1;
+//      tempTimerStore[ValueStoreCounter] = TimerArrayLocation;
+//      ValueStoreCounter++;
+//    }
+//  tempTimerValue[0] = ArraySum(TimerArray,tempTimerStore[0]);
+//		
+//  for(int p =1; p< BCMestimes; p++ ) //始终不考虑第一位，所以p从1开始
+//    {
+
+//      tempTimerValue[p] = ArraySum(TimerArray,tempTimerStore[p]);
+
+//    }
+
+//  for(int w =0; w< BCMestimes; w++ ) //始终不考虑第一位，所以p从1开始
+//    {
+//      finalTimerValue[0] = tempTimerValue[0]; //最终时间表的第一个消息时间和临时时间表是一致的，所以不进入循环
+//      if(w >= 1)
+//        {
+//          finalTimerValue[w] =   tempTimerValue[w] - tempTimerValue[w-1];
+//        }
+// printf("###finalTimerValue is %d ###\r\n",  finalTimerValue[w]);
+//    }
+//  return BCMestimes;
+//}
+
+
+
 int TimerISR()  //uint16_t *
 {
 	/*fixed part*/
@@ -300,16 +398,16 @@ int TimerISR()  //uint16_t *
                 }
         }
     }
-  //printf("###tempMesLocation_x###%d\r\n", tempMesLocation_x);
+  printf("###tempMesLocation_x###%d\r\n", tempMesLocation_x);
 
   /*show nodes message location in received matrix*/
 
-//  for(int m =0; m<tempMesLocation_x; m++)
-//    {
-//      printf("###jiabin wang###\r\n");
-//      printf("relavant mes location: (%d, %d)\r\n", tempMesLocation[m][0],tempMesLocation[m][1] );
-//      printf("@@@@@@@@@@@@@\r\n");
-//    }
+  for(int m =0; m<tempMesLocation_x; m++)
+    {
+      printf("###jiabin wang###\r\n");
+      printf("relavant mes location: (%d, %d)\r\n", tempMesLocation[m][0],tempMesLocation[m][1] );
+      printf("@@@@@@@@@@@@@\r\n");
+    }
 
 		/*second part*/
   int BCMestimes=0;

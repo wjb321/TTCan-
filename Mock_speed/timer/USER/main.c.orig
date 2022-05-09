@@ -1,0 +1,64 @@
+#include "led.h"
+#include "delay.h"
+#include "key.h"
+#include "sys.h"
+#include "usart.h"
+#include "timer.h"
+#include "math.h"
+
+
+extern uint8_t timerSampleFlag;
+extern uint8_t timerEncoderFlag;
+extern uint8_t timerHighFreqFlag;
+float EncoderRiseEdge = 0.0;
+float HighFreqRiseEdge = 0.0;
+float PulsesPerCylce = 12.0;
+float MspeedValue, TspeedValue;
+float THighFrequence = 1000.0;
+float MFrequency_EncoderPulse = 100.0;
+float catchPeriod = 4999.0;
+int main(void)
+{
+
+  delay_init();	    	 //延时函数初始化
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
+  uart_init(115200);	 //串口初始化为115200
+  LED_Init();			     //LED端口初始化
+  TIM3_Int_Init((10*(MFrequency_EncoderPulse * pow(10, -3)))-1 ,7199);//10Khz的计数频率，计数到5000为500ms
+	TIM4_Int_Init((10*(THighFrequence * pow(10, -3)))-1 ,7199);//10Khz的计数频率，计数到5000为500ms
+  TIM2_Int_Init(catchPeriod,7199);//10Khz的计数频率，计数到5000为500ms
+  while(1)
+    {
+			
+						 if(timerHighFreqFlag == ENABLE)
+			 {
+				 HighFreqRiseEdge ++;
+			 }	
+      if(timerEncoderFlag == ENABLE)
+        {
+          LED0=!LED0;
+          EncoderRiseEdge ++;
+          printf("HighFreqRiseEdge %f \r\n", HighFreqRiseEdge);
+          timerEncoderFlag = DISABLE;
+
+        }
+			 
+				
+      if(timerSampleFlag == ENABLE)
+        {
+          LED1=!LED1;
+          MspeedValue = (EncoderRiseEdge * 60) / (PulsesPerCylce *(( catchPeriod+1)/10) * pow(10.0, -3.0));
+					TspeedValue = (MFrequency_EncoderPulse * 60) / (PulsesPerCylce * HighFreqRiseEdge);
+					HighFreqRiseEdge =0;
+          printf("Mspeed, Tspeed = (%.3f, %.3f ) \r\n", MspeedValue, TspeedValue);
+          timerSampleFlag = DISABLE;
+
+        }
+				
+
+
+    }
+
+
+}
+

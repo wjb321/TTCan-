@@ -27,7 +27,22 @@ Project File Date:  04/29/2022
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'F:\keil\ARM\ARMCC\Bin'
 Build target 'HY-RedBull V3.0'
-".\Obj\Project.axf" - 0 Error(s), 0 Warning(s).
+compiling nodes.c...
+..\USER\nodes\nodes.h(11): warning:  #1-D: last line of file ends without a newline
+  #endif 
+..\USER\nodes\nodes.c(106): warning:  #177-D: variable "Timerlist1flag"  was declared but never referenced
+    uint8_t Timerlist1flag = 1;
+..\USER\nodes\nodes.c(107): warning:  #177-D: variable "LocationArray"  was declared but never referenced
+    tempMesLocationInSM LocationArray;
+..\USER\nodes\nodes.c(226): warning:  #177-D: variable "LocationArray"  was declared but never referenced
+    tempMesLocationInSM LocationArray;
+..\USER\nodes\nodes.c(234): warning:  #177-D: variable "Timerlist2flag"  was declared but never referenced
+    uint8_t Timerlist2flag = 1;
+..\USER\nodes\nodes.c: 5 warnings, 0 errors
+linking...
+Program Size: Code=10152 RO-data=800 RW-data=324 ZI-data=1140  
+FromELF: creating hex file...
+".\Obj\Project.axf" - 0 Error(s), 5 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -50,7 +65,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.5.0
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>
