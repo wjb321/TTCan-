@@ -16,7 +16,7 @@ float MTHighFreqRiseEdge = 0.0;
 float PulsesPerCylce = 12.0;
 float MspeedValue, TspeedValue, MTspeedValue;
 float THighFrequence = 1000.0;
-float MFrequency_EncoderPulse = 250.0;
+float MFrequency_EncoderPulse = 1.0;
 float catchPeriod = 4999.0;
 int main(void)
 {
