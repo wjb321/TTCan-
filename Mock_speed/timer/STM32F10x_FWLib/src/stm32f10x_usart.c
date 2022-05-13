@@ -589,6 +589,7 @@ void USART_LINCmd(USART_TypeDef* USARTx, FunctionalState NewState)
   * @param  Data: the data to transmit.
   * @retval None
   */
+
 void USART_SendData(USART_TypeDef* USARTx, uint16_t Data)
 {
   /* Check the parameters */

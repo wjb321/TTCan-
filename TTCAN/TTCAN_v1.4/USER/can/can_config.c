@@ -6,7 +6,7 @@ uint8_t MasterNumBC =0;
 uint64_t MasterTimeTx =0;
 uint8_t MASTER_DATA0,MASTER_DATA1,MASTER_DATA2,MASTER_DATA3,MASTER_DATA4,MASTER_DATA5,MASTER_DATA6,MASTER_DATA7;
 /*Slave Node*/
-uint8_t CAN_DATA0,CAN_DATA1,CAN_DATA2,CAN_DATA3,CAN_DATA4,CAN_DATA5,CAN_DATA6,CAN_DATA7;
+extern uint8_t CAN_DATA0,CAN_DATA1,CAN_DATA2,CAN_DATA3,CAN_DATA4,CAN_DATA5,CAN_DATA6,CAN_DATA7;
 void CanInit(void);
 void CanFilter_0_Configure(void);
 void 	CanFilter_1_Configure(void);
@@ -156,12 +156,12 @@ void NodeMesTransmit(uint16_t ID)
   uint8_t box;
   CanTxMsg TxMessage;
 
-  CAN_DATA0=0x22;
-  CAN_DATA1=0x22;
-  CAN_DATA2=0x22;
+  //CAN_DATA0=0x22;
+ // CAN_DATA1=0x22;
+ // CAN_DATA2=0x22;
   CAN_DATA3=increase_flag;
-  CAN_DATA4=0x5;
-  CAN_DATA5=0x6;
+ // CAN_DATA4=0x5;
+ // CAN_DATA5=0x6;
   //CAN_DATA6=0x61;  CAN_DATA7=0x6e;
 
   /* transmit */
@@ -172,11 +172,11 @@ void NodeMesTransmit(uint16_t ID)
   TxMessage.DLC = 8;            /* 数据长度, can报文规定最大的数据长度为8字节 */
 
   TxMessage.Data[0] = CAN_DATA0;
-  TxMessage.Data[1] = CAN_DATA1;
-  TxMessage.Data[2] = CAN_DATA2;
+//  TxMessage.Data[1] = CAN_DATA1;
+//  TxMessage.Data[2] = CAN_DATA2;
   TxMessage.Data[3] = CAN_DATA3;
-  TxMessage.Data[4] = CAN_DATA4;
-  TxMessage.Data[5] = CAN_DATA5;
+//  TxMessage.Data[4] = CAN_DATA4;
+//  TxMessage.Data[5] = CAN_DATA5;
 //  TxMessage.Data[6] = CAN_DATA6;
 //  TxMessage.Data[7] = CAN_DATA7;
   box = CAN_Transmit(CAN1,&TxMessage);  /* 返回这个信息请求发送的邮箱号0,1,2或没有邮箱申请发送no_box */
