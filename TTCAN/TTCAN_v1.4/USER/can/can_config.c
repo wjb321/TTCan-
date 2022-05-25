@@ -1,6 +1,7 @@
 #include "can_config.h"
 #include "usart.h"
 #include "ttcan.h"
+#include "TTCAN_mes.h"
 /*Mater Node*/
 uint8_t MasterNumBC =0;
 uint64_t MasterTimeTx =0;
@@ -33,7 +34,7 @@ void CAN__Master_Configuration(void)
   CAN_InitTypeDef        CAN_InitStructure;  // CAN mode struct
   CAN_FilterInitTypeDef  CAN_FilterInitStructure;  // CAN filter struct
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE); // enable can1 clock.
-  NVIC0_Configuration(); 
+  NVIC0_Configuration();
   GPIO_Configuration(); // configure the can IO
   CAN_DeInit(CAN1);
   CAN_StructInit(&CAN_InitStructure);
@@ -55,7 +56,7 @@ void CAN__Master_Configuration(void)
   /* 配置大方向: Tseg1>=Tseg2  Tseg2>=tq; Tseg2>=2TSJW */
   // wang configure
   CAN_Init(CAN1,&CAN_InitStructure);
-	//13.04,22： 过滤器的优先级别参考中文参考手册的433页
+  //13.04,22： 过滤器的优先级别参考中文参考手册的433页
   CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
   CAN_FilterInitStructure.CAN_FilterFIFOAssignment=0;  /* 能够通过该过滤器的报文存到fifo0中 */
   CAN_FilterInitStructure.CAN_FilterNumber=0;     /* 过滤器0 */
@@ -65,7 +66,7 @@ void CAN__Master_Configuration(void)
   CAN_FilterInitStructure.CAN_FilterIdLow= 0x0000;
   CAN_FilterInitStructure.CAN_FilterMaskIdHigh  = 0x0000;
   CAN_FilterInitStructure.CAN_FilterMaskIdLow   = 0x0000;
-  CAN_ITConfig(CAN1,CAN_IT_FMP0, ENABLE);   
+  CAN_ITConfig(CAN1,CAN_IT_FMP0, ENABLE);
   CAN_FilterInit(&CAN_FilterInitStructure);
 }
 
@@ -98,7 +99,7 @@ void CanInit()
 }
 
 void CanFilter_0_Configure()
-{ 
+{
 //	CAN_FilterInitStructure.CAN_FilterIdHigh   =(((u32)slave_id<<3)&0xFFFF0000)>>16;
 //  CAN_FilterInitStructure.CAN_FilterIdLo=(((u32)slave_id<<3)|CAN_ID_EXT|CAN_RTR_DATA)&0xFFFF;
 
@@ -109,8 +110,8 @@ void CanFilter_0_Configure()
   CAN_FilterInitStructure0.CAN_FilterMode=CAN_FilterMode_IdMask;  /* can be IDlist,IDmask, the mask is relatively complex*/
   CAN_FilterInitStructure0.CAN_FilterScale=CAN_FilterScale_32bit; /* 32位 */
   //CAN_FilterInitStructure0.CAN_FilterIdHigh= ((((u32)MaskID_SM<<3)| CAN_ID_EXT  |CAN_RTR_DATA)&0xFFFF0000)>>16;
-	CAN_FilterInitStructure0.CAN_FilterIdHigh= ((((u32)MaskID_SM<<21))&0xFFFF0000)>>16; //MaskID_SM
-  CAN_FilterInitStructure0.CAN_FilterIdLow= (((u32)MaskID_SM<<21)| CAN_ID_STD  |CAN_RTR_DATA)&0xFFFF;  //CAN_ID_EXT 
+  CAN_FilterInitStructure0.CAN_FilterIdHigh= ((((u32)MaskID_SM<<21))&0xFFFF0000)>>16; //MaskID_SM
+  CAN_FilterInitStructure0.CAN_FilterIdLow= (((u32)MaskID_SM<<21)| CAN_ID_STD  |CAN_RTR_DATA)&0xFFFF;  //CAN_ID_EXT
   CAN_ITConfig(CAN1,CAN_IT_FMP0, ENABLE);   /* 挂号中断, 进入中断后读fifo的报文函数释放报文清中断标志 */
   CAN_FilterInitStructure0.CAN_FilterMaskIdHigh  = 0xFF9F;//MaskID_SM and MaskID_Ref both can reiceive
   CAN_FilterInitStructure0.CAN_FilterMaskIdLow   = 0xFFFF;
@@ -149,47 +150,39 @@ void CanFilter_1_Configure()
 //  CAN_FilterInitStructure1.CAN_FilterMaskIdLow   = 0xFFE7;
 //  CAN_FilterInit(&CAN_FilterInitStructure1);
 //}
-uint8_t increase_flag =0;
+
 void NodeMesTransmit(uint16_t ID)
 {
-  increase_flag ++;
-  uint8_t box;
-  CanTxMsg TxMessage;
+  switch(ID)
+    {
+    case mes1_ID:
+      message1(mes1_ID);
+      break;
+    case mes2_ID:
+      message2(mes2_ID);
+      break;
+    case mes3_ID:
+      message3(mes3_ID);
+      break;
+    case mes4_ID:
+      WheelSpeed(mes4_ID);
+      break;
+    case mes5_ID:
+      message5(mes5_ID);
+      break;
+    case mes6_ID:
+      message6(mes6_ID);
+      break;
+    default :
+      printf("can be a arbitrary message \r\n");
 
-  //CAN_DATA0=0x22;
- // CAN_DATA1=0x22;
- // CAN_DATA2=0x22;
-  CAN_DATA3=increase_flag;
- // CAN_DATA4=0x5;
- // CAN_DATA5=0x6;
-  //CAN_DATA6=0x61;  CAN_DATA7=0x6e;
+    }
 
-  /* transmit */
-  TxMessage.StdId = ID;  /* 设置标准id  注意标准id的最高7位不能全是隐性(1)。共11位 */
-  //TxMessage.ExtId = ID;     //设置扩展id  扩展id共18位
-  TxMessage.RTR = CAN_RTR_DATA   ; /* data frame if it is remote frame, then the struct DATA[8] */
-  TxMessage.IDE = CAN_ID_STD ; //CAN_ID_EXT   ;   /* 使用标准id	*/
-  TxMessage.DLC = 8;            /* 数据长度, can报文规定最大的数据长度为8字节 */
-
-  TxMessage.Data[0] = CAN_DATA0;
-  TxMessage.Data[1] = CAN_DATA1;
-//  TxMessage.Data[2] = CAN_DATA2;
-  TxMessage.Data[3] = CAN_DATA3;
-//  TxMessage.Data[4] = CAN_DATA4;
-//  TxMessage.Data[5] = CAN_DATA5;
-//  TxMessage.Data[6] = CAN_DATA6;
-//  TxMessage.Data[7] = CAN_DATA7;
-  box = CAN_Transmit(CAN1,&TxMessage);  /* 返回这个信息请求发送的邮箱号0,1,2或没有邮箱申请发送no_box */
-	delay_us(999);
-  //delay_ms(1);
-  /* transmit message wang adds */
-  while(CAN_TransmitStatus(CAN1,box) == CANTXFAILED);
-  printf(">>>>>ID  %#x is sent<<<<<\r\n", ID);
 }
 
 
 void SendRef(uint16_t ID, uint16_t TOTNumBC, uint16_t NUMSlot, uint16_t SLOTTime)
-{ 
+{
   uint8_t box;
   CanTxMsg TxMessage;
   MASTER_DATA0=TotNumBC;
@@ -201,7 +194,7 @@ void SendRef(uint16_t ID, uint16_t TOTNumBC, uint16_t NUMSlot, uint16_t SLOTTime
 
   /* transmit */
   TxMessage.StdId = ID;  /* 设置标准id  注意标准id的最高7位不能全是隐性(1)。共11位 */
- // TxMessage.ExtId = ID;     //设置扩展id  扩展id共18位
+// TxMessage.ExtId = ID;     //设置扩展id  扩展id共18位
   TxMessage.RTR = CAN_RTR_DATA   ; /* data frame if it is remote frame, then the struct DATA[8] */
   TxMessage.IDE = CAN_ID_STD; //CAN_ID_EXT   ;   /* 使用标准id	*/
   TxMessage.DLC = 8;            /* 数据长度, can报文规定最大的数据长度为8字节 */

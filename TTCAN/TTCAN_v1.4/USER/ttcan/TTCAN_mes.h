@@ -15,7 +15,7 @@
 void message1(uint16_t ID1);
 void message2(uint16_t ID2);
 void message3(uint16_t ID3);
-void message4(uint16_t ID4);
+void WheelSpeed(uint16_t ID4);
 void message5(uint16_t ID5);
-
+void message6(uint16_t ID6);
 #endif

@@ -11,7 +11,7 @@ uint64_t node_time = 0;
 uint64_t timeTx =0;
 uint8_t NumBC = 0;
 
-uint16_t TimerArray[NumSlot-1] ;//= {0,0,0}; // -2 is because RefCol and ArbCol wont take into consideration
+uint16_t TimerArray[NumSlot-2] ;//= {0,0,0}; // -2 is because RefCol and ArbCol wont take into consideration
 uint16_t Node1MesIDList[3] = {mes1_ID, mes2_ID, mes3_ID};
 uint16_t Node2MesIDList[3] = {mes4_ID, mes5_ID, mes6_ID};
 //uint16_t Node2MesIDList[3] = {mes4_ID, mes5_ID, mes6_ID};
@@ -57,26 +57,26 @@ extern uint8_t   SlaveNode2Flag;
 //};
 
 // small SM
-uint16_t  mes_id[TotNumBC][NumSlot] = {{0x0001, 0x123 },//0x123, 0x120,0},
-  {0x0001, 0x123 },//0x121, 0x123, 0},
-  {0x0001, 0x123 },//0x123, 0x121, 0},
-  {0x0001, 0x123 }
-};//0x122, 0x124, 0}
+uint16_t  mes_id[TotNumBC][NumSlot] = {{0x001, 0x125 , 0x121, 0x124, 0},//0x123, 0x120,0},   1 0 1  0
+                                       {0x001, 0x124 , 0x125, 0x120, 0},//0x121, 0x123, 0},  1 1 0  0
+                                       {0x001, 0x121 , 0x124, 0x125, 0},//0x123, 0x121, 0},  0 1 1  1
+                                       {0x001, 0x124 , 0x123, 0x125, 0} //                   1 1 1  1
+                                                          };//0x122, 0x124, 0}
 
-uint16_t is_exclusive_window[TotNumBC][NumSlot] = {{1, 1},//1, 1,0},
-  {1, 1},//, 1, 1,0},
-  {1, 1},//, 1, 1,0},
-  {1, 1},//, 1, 1,0}
+uint16_t is_exclusive_window[TotNumBC][NumSlot] = {{1, 1, 1, 1},//1, 1,0},
+  {1, 1, 1, 1},//, 1, 1,0},
+  {1, 1, 1, 1},//, 1, 1,0},
+  {1, 1, 1, 1},//, 1, 1,0}
 };
 
 // message lists with the period and transmission time. 0, mesID; 1, period; 2, transmission time;
 // the list can be the benchmark for the all the information, can store in all the nodes
 uint16_t  Mes_list[NumMes][MesList] = {{0x123, 10000, 7000},//
-  {0x122, 20000, 2000},
-  {0x120, 20000, 3000},//
-  {0x124, 30000, 4000},//
-  {0x125, 40000, 1500},
-  {0x121, 50000, 2300}
+  {0x122, 20000, 8200},
+  {0x120, 20000, 7400},//
+  {0x124, 30000, 8000},//
+  {0x125, 40000, 7500},
+  {0x121, 50000, 7300}
 };
 
 int finalTimerArrayShift_Nonzero = 1; // 标志最终时间数组中没有从0 开始的情况[200, 300, XXX, ...]
@@ -98,6 +98,7 @@ uint16_t SOS_ID()
       //printf("finalTimerArrayShift_zero is %d\r\n", finalTimerArrayShift_zero);
       if(interrupt_sos_times +1  >= MesTimesInBC)  //5-2 = 3
         {
+					printf("disabled the interrput in finaltimer is 0 \r\n");
           TIM_Cmd(TIM3, DISABLE);
         }
       else
@@ -112,17 +113,18 @@ uint16_t SOS_ID()
       NodeMesTransmit(Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_Nonzero-1]]);
       // printf("this message %#x is sent. \r\n",Received_mes_id[NumBC-1][IDsInOneBC[finalTimerArrayShift_Nonzero-1]]);
       //printf("IDsInOneBC[finalTimerArrayShift_Nonzero] is %d\r\n", IDsInOneBC[finalTimerArrayShift_Nonzero]);
-      // printf("the messages times are %d in BC %d\r\n", MesTimesInBC, NumBC-1);
-      //  printf("!!!!!!! finalTimerValue[0]!= 0 SOS_ISR_Count: %d for message finish !!!!!!! \r\n", interrupt_sos_times);
-      // printf("finalTimerArrayShift_zero is %d\r\n", finalTimerArrayShift_Nonzero);
-      if(interrupt_sos_times >= MesTimesInBC)  //5-2 = 3
+       printf("the messages times are %d in BC %d\r\n", MesTimesInBC, NumBC-1);
+        printf("!!!!!!! interrupt_sos_times finalTimerValue[0]!= 0 SOS_ISR_Count: %d for message finish !!!!!!! \r\n", interrupt_sos_times);
+       printf("finalTimerArrayShift_zero is %d\r\n", finalTimerArrayShift_Nonzero);
+      if(interrupt_sos_times >= MesTimesInBC)  //5-2 = 3  //1  2  
         {
+					printf("disabled the interrput in !0 %d, %d \r\n", interrupt_sos_times, MesTimesInBC-1 );
           TIM_Cmd(TIM3, DISABLE);
         }
       else
         {
           TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_Nonzero],7199,ENABLE); // this gets from timerset()
-          //printf("Now the finalTimerValue shift value is %d\r\n", finalTimerArrayShift_Nonzero);
+          printf("Now the finalTimerValue shift value is %d\r\n", finalTimerArrayShift_Nonzero);  // 1
           finalTimerArrayShift_Nonzero++; //后++是CanRefFlag == ENABLE 中没有使用
         }
 

@@ -124,3 +124,9 @@ after multiple tests, find the timer for BC can be configured as 16, with 1/ 1.7
 speed node send speed to ttcan node1(com15) and then send speed info via ttcan to  ttcan node2(3) use the speed to get response
 
 now: ttcan sends speed change info and speed.
+
+15.5.22 
+according to different ids, call different functions to send, this different functions are different sensor messages.
+
+16.5.22
+pb3, 4 after reset, the main function are jtdo and jntrst modes, when used as noral io, should do the pinremap function.

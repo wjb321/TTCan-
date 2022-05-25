@@ -4,7 +4,7 @@
 #include "stm32f10x.h"
 #include <stdio.h>
 #define TotNumBC 4
-#define NumSlot 2
+#define NumSlot 5
 #define SlotTime 1
 #define NumMes 6
 #define MesList 3
