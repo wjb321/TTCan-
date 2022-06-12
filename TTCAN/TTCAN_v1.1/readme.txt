@@ -137,3 +137,11 @@ it is block or just normal decelerate.
 
 2) the system matrix can be changed randomly, one can send every BC and another one can receice.
 
+
+10.06.22
+USART sends from warship board, and there is a problem:
+the speed change in a proper range it regards as deceleration, then remeber: CAN bus can only send data 0-0xff, so maximum is 255, so for m/s is fast enough. but warship board send the speed info is 
+1500, which is far higher than the expected value. there are two options: seperate the data into 2 parts, and CAN transmits the data  by data0 and data2. or send relative small value(fair enough)
+
+12.06.22
+here add some threshold by checking the speed, and according to the speed info, can fast detect the state of the car.

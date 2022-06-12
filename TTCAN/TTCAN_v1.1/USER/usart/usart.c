@@ -69,7 +69,7 @@ void USART_Configuration(void)
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
 
 
-  USART_InitStructure.USART_BaudRate = 921600;//256000;
+  USART_InitStructure.USART_BaudRate = 256000;//256000;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
   USART_InitStructure.USART_Parity = USART_Parity_No;
