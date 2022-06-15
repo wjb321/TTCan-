@@ -32,7 +32,6 @@ uint8_t   SlaveNode2Flag = 0;
 float speedArray[2] = {0};
 int VeloVar1 = 0, VeloVar2 = 0 ;
 // 填满速度矩阵
-
 float DecelerateRate = 1.5;
 float VeloThreshold = 15;
 float Phase1 = 0;
@@ -41,6 +40,8 @@ float Decelerate = 30;
 float Radian = 0.523;
 float Radius = 0.045;
 float intermediate = 0;
+
+
 
 
 void Node0()
@@ -94,8 +95,8 @@ void Node1()
   u16 len;
   u16 times=0;
   SlaveNode1Flag = 1;
-	int Veloarray = 0;
-	int FillArrayTimes = 0;
+  int Veloarray = 0;
+  int FillArrayTimes = 0;
   CAN_Configuration();
   printf("\r\n");
   printf("*****************************************************************\r\n");
@@ -103,6 +104,7 @@ void Node1()
   printf("*  node 1 gets the reference message");
   printf("*                                                               *\r\n");
   printf("*****************************************************************\r\n");
+  TIM4_PWM_Init(899,0);	 //不分频。PWM频率=72000000/900=80Khz
   TIM3_Int_Init(3500,7199,DISABLE);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
   intermediate = Decelerate * Radian * Radius;
   while (1)
@@ -141,7 +143,7 @@ void Node1()
                     {
                       printf("speedArray[1]  is %f \r\n", speedArray[1] );
                       printf("speedArray[0] is %f \r\n", speedArray[0]);
-                     printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5);
+                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5);
                       MES4_DATA0 = 3;
                       // printf("%d \r\n", CAN_DATA0);
                       printf("celerate \r\n");
@@ -173,7 +175,7 @@ void Node1()
                   speedArray[1] = (USART_RX_BUF[t]);
                   //Veloarray ++;
                   FillArrayTimes = 3;
-									if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5) && speedArray[1] < speedArray[0] )
+                  if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5) && speedArray[1] < speedArray[0] )
                     {
                       printf("speedArray[1]  is %f \r\n", speedArray[1] );
                       printf("speedArray[0] is %f \r\n", speedArray[0]);
@@ -326,6 +328,8 @@ void Node1()
 
       if(CanRxFlag == ENABLE )
         {
+          u16 led0pwmval=0;
+          u8 dir=1;
           LEDA1 = !LEDA1;
           if(CANRx_ID == mes1_ID)
             {
@@ -339,13 +343,24 @@ void Node1()
             }
           else if(CANRx_ID == mes3_ID)
             {
-              LEDB7 = !LEDB7; //122
+              //LEDB7 = !LEDB7; //122
               printf("**Mes3 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
             }
           else if(CANRx_ID == mes4_ID)
             {
               LEDB8 = !LEDB8; //123
               printf("**ABS INFO：(CANRx_ID, wheel status, speed) = ( %#x ,%d , %d rps, %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1,  Rx1_DATA3);
+              while(Rx1_DATA0 == 1)
+                {
+                  delay_ms(1);
+                  if(dir)led0pwmval = led0pwmval+ 10 ;
+                  //else led0pwmval = led0pwmval- 10;
+
+                  if(led0pwmval>1500)dir=0;
+                  if(led0pwmval==0)dir=1;
+                  TIM_SetCompare2(TIM4,led0pwmval); // releasing the brake pad
+									printf("pwm works now %d \r\n", led0pwmval);
+                }
             }
           else if(CANRx_ID == mes5_ID)
             {
@@ -376,8 +391,8 @@ void Node2()
   u16 len;
   u16 times=0;
   SlaveNode2Flag = 1;
-	int FillArrayTimes = 0;
-	int Veloarray = 0;
+  int FillArrayTimes = 0;
+  int Veloarray = 0;
   CAN_Configuration();
   printf("\r\n");
   printf("*****************************************************************\r\n");
@@ -386,7 +401,8 @@ void Node2()
   printf("*                                                               *\r\n");
   printf("*****************************************************************\r\n");
   TIM3_Int_Init(3500,7199,DISABLE);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
-	intermediate = Decelerate * Radian * Radius;
+  TIM4_PWM_Init(899,0);	 //不分频。PWM频率=72000000/900=80Khz
+  intermediate = Decelerate * Radian * Radius;
   while (1)
     {
 
@@ -401,7 +417,7 @@ void Node2()
               if(FillArrayTimes < 2)
                 {
                   speedArray[Veloarray] = (USART_RX_BUF[t]);
-                 if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5) && speedArray[1] < speedArray[0] )
+                  if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5) && speedArray[1] < speedArray[0] )
                     {
                       printf("speedArray[1]  is %f \r\n", speedArray[1] );
                       printf("speedArray[0] is %f \r\n", speedArray[0]);
@@ -455,7 +471,7 @@ void Node2()
                   speedArray[1] = (USART_RX_BUF[t]);
                   //Veloarray ++;
                   FillArrayTimes = 3;
-                 if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5) && speedArray[1] < speedArray[0] )
+                  if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 - 1.5) && speedArray[1] < speedArray[0] )
                     {
                       printf("speedArray[1]  is %f \r\n", speedArray[1] );
                       printf("speedArray[0] is %f \r\n", speedArray[0]);
@@ -605,7 +621,9 @@ void Node2()
         }
 
       if(CanRxFlag == ENABLE )
-        {
+        { 
+					u16 led0pwmval=0;
+          u8 dir=1;
           LEDA1 = !LEDA1;
           if(CANRx_ID == mes1_ID)
             {
@@ -619,13 +637,24 @@ void Node2()
             }
           else if(CANRx_ID == mes3_ID)
             {
-              LEDB7 = !LEDB7; //122
+              //LEDB7 = !LEDB7; //122
               printf("**Mes3 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
             }
           else if(CANRx_ID == mes4_ID)
             {
               LEDB8 = !LEDB8; //123
               printf("**ABS INFO：(CANRx_ID, wheel status, speed) = ( %#x ,%d , %d rps, %#x)** \r\n", CANRx_ID, Rx1_DATA0, (Rx1_DATA1),  Rx1_DATA3);
+              while(Rx1_DATA0 == 1)
+                {
+                  delay_ms(1);
+                  if(dir)led0pwmval = led0pwmval+ 10 ;
+                  //else led0pwmval = led0pwmval- 10;
+
+                  if(led0pwmval>1500)dir=0;
+                  if(led0pwmval==0)dir=1;
+                  TIM_SetCompare2(TIM4,led0pwmval); // releasing the brake pad
+									printf("pwm works now %d \r\n", led0pwmval);
+                }
             }
           else if(CANRx_ID == mes5_ID)
             {
