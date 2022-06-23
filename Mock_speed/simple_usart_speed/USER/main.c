@@ -90,14 +90,14 @@ int main(void)
             {
               finalTspeedValue = 0;
             }
-          //printf("TspeedValue(lowSpeed) ) is: %d ) \r\n",(uint16_t)finalTspeedValue);
-          USART_SendData(USART1, (uint16_t)(finalTspeedValue));//向串口1发送数据// 发给另一个串口
-          delay_ms(5);
-          USART_SendData(USART1, 0x0d);
-          delay_ms(5);
-          USART_SendData(USART1, 0x0a);
-          while(USART_GetFlagStatus(USART1,USART_FLAG_TC)!=SET)
-            EncoderRiseEdge =0;
+          printf("%d\n",(uint16_t)finalTspeedValue);
+//          USART_SendData(USART1, (uint16_t)(finalTspeedValue));//向串口1发送数据// 发给另一个串口
+//          delay_ms(1);
+//          USART_SendData(USART1, 0x0d);
+//          delay_ms(1);
+//          USART_SendData(USART1, 0x0a);
+//          while(USART_GetFlagStatus(USART1,USART_FLAG_TC)!=SET)
+          EncoderRiseEdge =0;
           MTHighFreqRiseEdge = 0;
           timerSampleFlag = DISABLE;
 

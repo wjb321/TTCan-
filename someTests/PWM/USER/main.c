@@ -18,7 +18,7 @@
  	TIM4_PWM_Init(899,0);	 //²»·ÖÆµ¡£PWMÆµÂÊ=72000000/900=80Khz
   while(1)
 	{
- 		delay_ms(10);	 
+ 		delay_ms(100);	 
 		if(dir)led0pwmval = led0pwmval+ 10 ;
 		else led0pwmval = led0pwmval- 10;
 
