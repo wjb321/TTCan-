@@ -31,7 +31,8 @@ void calc_motor_rotate_speed()
     /* 转速(1秒钟转多少圈)=单位时间内的计数值/总分辨率*时间系数 */
      rotateSpeed = (float)encoderNum/(TOTAL_RESOLUTION*0.05);
     //printf("encoder:speed:rps\r\n");
-    printf("%.2f \r\n",rotateSpeed);
+	  printf("%d \r\n",encoderNum);
+   // printf("%.2f \r\n",rotateSpeed);
 }
 
 
@@ -54,7 +55,7 @@ void TIM4_Mode_Config(void)
     GPIO_Init(GPIOB, &GPIO_InitStructure);                           
 
     TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-    TIM_TimeBaseStructure.TIM_Period = 48;  //设定计数器重装值   TIMx_ARR = 1024*4-1 这是360线的
+    TIM_TimeBaseStructure.TIM_Period = 2096;  //设定计数器重装值   TIMx_ARR = 1024*4-1 这是360线的
     TIM_TimeBaseStructure.TIM_Prescaler = 0; //TIM4时钟预分频值
     TIM_TimeBaseStructure.TIM_ClockDivision =TIM_CKD_DIV1 ;//设置时钟分割 T_dts = T_ck_int    
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; //TIM向上计数 

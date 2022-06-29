@@ -36,11 +36,13 @@ extern int TIM3_flag;
 //		int value;
 //   value =  read_encoder();		
 //   printf("%d \r\n ",value);
-//		delay_ms(1000);
+      
 		//int num=TIM4->CNT;//1024*4=4096  0-4095 
 		//	printf("hello the world");
+		//delay_ms(10000);
     //printf("%d \r\n",num);
 		//printf("%d \r\n",circle_count);
+		
 		if(TIM3_flag == 1)
 		{
 		 //printf("encoder:speed:rps\r\n");
@@ -48,6 +50,7 @@ extern int TIM3_flag;
 			TIM3_flag = 0;
 			
 		}
+		
 //		//发送数据，绘制图像
 //			Float_to_Byte(num*1.0,byte);
 //			for(t_test=0;t_test<4;t_test++)
