@@ -18,7 +18,7 @@ int main(void)
   TIM3_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
   delay_us((int)((FrequencyInfo* pow(10,3))/40));
   TIM2_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
-
+  //delay_ms(10);
   while(1)
     {
       key=KEY_Scan(0);	//得到键值
@@ -28,14 +28,15 @@ int main(void)
             {
             case KEY2_PRES:	// speed up
               FrequencyInfo -= 5;
-              if (FrequencyInfo <=1)
+              if (FrequencyInfo <=10)
                 {
-                  FrequencyInfo = 1;
+                  FrequencyInfo = 10;
                 }
-								printf("speed up %d \r\n", FrequencyInfo);
+							printf("speed up %d \r\n", FrequencyInfo);
               TIM3_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
-              delay_ms((int)((FrequencyInfo* pow(10,3))/40));
+              delay_us((int)((FrequencyInfo* pow(10,3))/40));
               TIM2_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
+								printf("delay time: %.3f , int delay time %d\r\n", ((FrequencyInfo* pow(10,3))/40.0), (int)((FrequencyInfo* pow(10,3))/40) );
               break;
             case KEY1_PRES:	//slow down
               FrequencyInfo += 5;
@@ -45,8 +46,9 @@ int main(void)
                 }
 								printf("decelerate %d \r\n", FrequencyInfo);
               TIM3_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
-              delay_ms((int)((FrequencyInfo* pow(10,3))/40));
+              delay_us((int)((FrequencyInfo* pow(10,3))/40));
               TIM2_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
+								printf("delay time: %.3f , int delay time %d\r\n", ((FrequencyInfo* pow(10,3))/40.0), (int)((FrequencyInfo* pow(10,3))/40) );
               break;
             case KEY0_PRES:	//block
               FrequencyInfo += 10;
@@ -56,8 +58,9 @@ int main(void)
                 }
 							printf("blocked %d \r\n", FrequencyInfo);
               TIM3_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
-              delay_ms((int)((FrequencyInfo* pow(10,3))/40));
+              delay_us((int)((FrequencyInfo* pow(10,3))/40));
               TIM2_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
+								printf("delay time: %.3f , int delay time %d\r\n", ((FrequencyInfo* pow(10,3))/40.0), (int)((FrequencyInfo* pow(10,3))/40) );
               break;
 
 //            case WKUP_PRES:	//同时控制LED0,LED1翻转   //WKUP_PRES
