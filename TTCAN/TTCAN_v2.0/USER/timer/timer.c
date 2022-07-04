@@ -13,15 +13,16 @@
 // 读取定时器计数值
  int read_encoder(void) //static
 {
-    int encoderNum = 0;
-    encoderNum = (int)((int16_t)(TIM4->CNT)); /*CNT为uint32, 转为int16*/
-    TIM_SetCounter(TIM4, CNT_INIT);/*CNT设初值*/
+    int encoderNum = 888;
+	  delay_ms(1);
+    //encoderNum = (int)((int16_t)(TIM4->CNT)); /*CNT为uint32, 转为int16*/
+    //TIM_SetCounter(TIM4, CNT_INIT);/*CNT设初值*/
 	
     return encoderNum;
 }
 
 //计算电机转速（被另一个定时器每100ms调用1次） 
-int calc_motor_rotate_speed()
+int calc_motor_rotate_speed() 
 {
     int encoderNum = 0;
     float rotateSpeed = 0;
@@ -30,9 +31,9 @@ int calc_motor_rotate_speed()
      encoderNum = read_encoder();
     /* 转速(1秒钟转多少圈)=单位时间内的计数值/总分辨率*时间系数 */
      rotateSpeed = (float)(encoderNum/(TOTAL_RESOLUTION*0.15));  //0.05 //0.23 
-    printf("encoder %d \r\n",encoderNum);
+   // printf("encoder %d \r\n",encoderNum);
    // printf("rotateSpeed  %.2f \r\n",rotateSpeed);
-	return encoderNum;
+	return rotateSpeed;
 	
 }
 

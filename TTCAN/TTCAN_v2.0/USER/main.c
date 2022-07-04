@@ -25,7 +25,7 @@ int main(void)
   LED_Init();
   USART_Configuration();
  	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
-  switch(SlaveNode2) //SlaveNode2
+  switch(1) //SlaveNode2
     {
     case 0:
       Node0();

@@ -125,7 +125,7 @@ void Node1()
   intermediate = Decelerate * Radian * Radius;
 
   //TEST24
-  while (1) // forloop
+  while (forloop) // forloop
     {
       /*get usart interrput(speed info)*/
       if(TempDataReceived)
@@ -264,7 +264,7 @@ void Node1()
         }
 
       /*Reiceive reference and start BC*/
-      if( CanRefFlag == ENABLE )  // TEST24 CanRefFlag1
+      if( CanRefFlag1 == ENABLE )  // TEST24 CanRefFlag1
         {
           LEDC14 = !LEDC14;
           if(NumBC >= TotNumBC)
@@ -414,7 +414,7 @@ void Node1()
         }
 
       //TEST24
-     // forloop = 0;
+      forloop = 0;
       //TEST24
     }
 
@@ -428,9 +428,11 @@ void Node2()
 	
 	//1.7.22 down 
 	extern vu32 NumHighFreq;
-	extern int CountingEncoderNumFlag;
+  int CountingEncoderNumFlag1 =1;
 	int encoderValue;
 	float SpeedT = 0;
+	int whileTest = 1;
+	int CanRefFlag1 = 1;
 	//1.7.22 up 
 	
   SlaveNode2Flag = 1;
@@ -448,13 +450,13 @@ void Node2()
   TIM2_Int_Init(10,7199,ENABLE); // T method or M method
   //TIM4_PWM_Init(899,0);	 //不分频。PWM频率=72000000/900=80Khz
   intermediate = Decelerate * Radian * Radius;
-  while (1)
+  while (whileTest)
     { 
-     if(CountingEncoderNumFlag == 1)
+     if(CountingEncoderNumFlag1 == 1)
 		{
 		 //printf("encoder:speed:rps\r\n");
 			SpeedT = calc_motor_rotate_speed();
-			CountingEncoderNumFlag = 0;
+			CountingEncoderNumFlag1 = 0;
 			
 		
     //  int num=TIM4->CNT;//1024*4=4096  0-4095
@@ -592,29 +594,32 @@ void Node2()
         //  printf("\r\n\r\n");//插入换行
         //  USART_RX_STA=0;
         //}
-      /*Reiceive SM from master node*/
-      if( CanSMFlag == ENABLE )
-        {
-          LEDC13 = !LEDC13;
-          CanSMFlag = DISABLE;
-          ReiceiveSM();
-          NumBC =0;
-        }
+					 
+					 
+      /*Reiceive SM from master node 1.7.22 commented*/
+//      if( CanSMFlag == ENABLE )
+//        {
+//          LEDC13 = !LEDC13;
+//          CanSMFlag = DISABLE;
+//          ReiceiveSM();
+//          NumBC =0;
+//        }
 
       /*Reiceive reference and start BC*/
-
-      if( CanRefFlag == ENABLE )
+      /*1.7.22 */
+					 
+      if( CanRefFlag1 == ENABLE )
         {
 
-          LEDC14 = !LEDC14;
+          //LEDC14 = !LEDC14;
           if(NumBC >= TotNumBC)
             {
               NumBC = 0;
             }
-          printf("\r\n");
-          printf("************ %d. reference start********** \r\n",NumBC);
-          printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
-          printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
+          //printf("\r\n");
+          printf("** %d. reference start ** \r\n",NumBC);
+          //printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
+          //printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
           //printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
           //printf("************ %d. reference start********** \r\n",NumBC);
           MesTimesInBC = TimerISR();
@@ -623,12 +628,12 @@ void Node2()
           temp_receive_id= Received_mes_id[NumBC][1];//NumBC
           first_mes_after_ref = MesTransmitTime(temp_receive_id);
           //T3 for counting the time slots
-          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
-            {
-              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
-            }
+//          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+//            {
+//              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+//            }
 
-          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
+//          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
           if(MesTimesInBC !=0)
             {
               if(finalTimerValue[0]== 0)
@@ -667,6 +672,7 @@ void Node2()
           finalTimerArrayShift_Nonzero = 1;
           finalTimerArrayShift_zero =1;
           TimerArrayLocation = 0;
+				  CanRefFlag1 = 0;
         }
 
 
@@ -687,61 +693,61 @@ void Node2()
           SOS_ISR_flag = DISABLE;
         }
 
-      if(CanRxFlag == ENABLE )
-        {
-          u16 led0pwmval=0;
-          u8 dir=1;
-          LEDA1 = !LEDA1;
-          if(CANRx_ID == mes1_ID)
-            {
-              LEDB5 = !LEDB5; // 120
-              printf("**Mes1 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes2_ID)
-            {
-             // LEDB6 = !LEDB6; //121
-              printf("**Mes2 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes3_ID)
-            {
-              //LEDB7 = !LEDB7; //122
-              printf("**Mes3 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes4_ID)
-            {
-              // LEDB8 = !LEDB8; //123
-              printf("**ABS INFO：(CANRx_ID, wheel status, speed) = ( %#x ,%d , %d rps, %#x)** \r\n", CANRx_ID, Rx1_DATA0, (Rx1_DATA1),  Rx1_DATA3);
-              while(Rx1_DATA0 == 1)
-                {
-                  delay_ms(1);
-                  if(dir)led0pwmval = led0pwmval+ 10 ;
-                  //else led0pwmval = led0pwmval- 10;
+//      if(CanRxFlag == ENABLE )
+//        {
+//          u16 led0pwmval=0;
+//          u8 dir=1;
+//          LEDA1 = !LEDA1;
+//          if(CANRx_ID == mes1_ID)
+//            {
+//              LEDB5 = !LEDB5; // 120
+//              printf("**Mes1 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes2_ID)
+//            {
+//             // LEDB6 = !LEDB6; //121
+//              printf("**Mes2 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes3_ID)
+//            {
+//              //LEDB7 = !LEDB7; //122
+//              printf("**Mes3 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes4_ID)
+//            {
+//              // LEDB8 = !LEDB8; //123
+//              printf("**ABS INFO：(CANRx_ID, wheel status, speed) = ( %#x ,%d , %d rps, %#x)** \r\n", CANRx_ID, Rx1_DATA0, (Rx1_DATA1),  Rx1_DATA3);
+//              while(Rx1_DATA0 == 1)
+//                {
+//                  delay_ms(1);
+//                  if(dir)led0pwmval = led0pwmval+ 10 ;
+//                  //else led0pwmval = led0pwmval- 10;
 
-                  if(led0pwmval>1500)dir=0;
-                  if(led0pwmval==0)dir=1;
-                  TIM_SetCompare2(TIM4,led0pwmval); // releasing the brake pad
-                  printf("pwm works now %d \r\n", led0pwmval);
-                }
-            }
-          else if(CANRx_ID == mes5_ID)
-            {
-              LEDB9 = !LEDB9; //124
-              printf("**Mes5 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes6_ID)
-            {
-              LEDA2 = !LEDA2; //125
-              printf("**Mes6 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else
-            {
-              printf("**arbitrary windows **");
-            }
+//                  if(led0pwmval>1500)dir=0;
+//                  if(led0pwmval==0)dir=1;
+//                  TIM_SetCompare2(TIM4,led0pwmval); // releasing the brake pad
+//                  printf("pwm works now %d \r\n", led0pwmval);
+//                }
+//            }
+//          else if(CANRx_ID == mes5_ID)
+//            {
+//              LEDB9 = !LEDB9; //124
+//              printf("**Mes5 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes6_ID)
+//            {
+//              LEDA2 = !LEDA2; //125
+//              printf("**Mes6 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else
+//            {
+//              printf("**arbitrary windows **");
+//            }
 
-          CanRxFlag = DISABLE;
-        }
+//          CanRxFlag = DISABLE;
+//        }
 
-
+     whileTest =0;
     }
 }
 
