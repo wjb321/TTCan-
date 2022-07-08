@@ -28,9 +28,9 @@ int main(void)
             {
             case KEY2_PRES:	// speed up
               FrequencyInfo -= 5;
-              if (FrequencyInfo <=10)
+              if (FrequencyInfo <=5)
                 {
-                  FrequencyInfo = 10;
+                  FrequencyInfo = 5;
                 }
 							printf("speed up %d \r\n", FrequencyInfo);
               TIM3_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
@@ -51,7 +51,7 @@ int main(void)
 								printf("delay time: %.3f , int delay time %d\r\n", ((FrequencyInfo* pow(10,3))/40.0), (int)((FrequencyInfo* pow(10,3))/40) );
               break;
             case KEY0_PRES:	//block
-              FrequencyInfo += 10;
+              FrequencyInfo += 15;
               if (FrequencyInfo >=5999)
                 {
                   FrequencyInfo = 5999;

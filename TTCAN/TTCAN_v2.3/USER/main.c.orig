@@ -1,0 +1,353 @@
+#ifdef __GNUC__
+/* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+
+#include "stm32f10x.h"
+#include "systick.h"
+#include "usart.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "led.h"
+#include "can_config.h"
+#include "timer.h"
+#include "ttcan.h"
+
+#define   MasterNode 0
+#define   SlaveNode1 1
+#define   SlaveNode2 2
+
+
+/* Private variables ---------------------------------------------------------*/
+extern uint8_t Transmit_time_flag;
+extern uint8_t Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5,Rx0_DATA6,Rx0_DATA7;
+extern uint8_t Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5;
+extern uint16_t timeStamp,TimeStampRx1;
+extern uint16_t Slot_ISR_Timer, mes_id[TotNumBC][NumSlot];
+extern uint8_t CanRefFlag, CanSMFlag;
+extern uint16_t NumBC, Mes_list[NumMes][MesList];
+extern uint16_t CANRef_ID, CANSM_ID;
+static void can_delay(__IO u32 nCount);
+extern int i, j;
+int sm_id_nonzero_flag = 0;
+extern uint16_t  Received_mes_id[TotNumBC][NumSlot];
+extern uint8_t received_is_exclusive_window[TotNumBC][NumSlot];
+extern uint16_t SM_received_counter; // from isr
+extern uint16_t SOS_ISR_flag;
+extern uint16_t TimerArray[NumSlot-2];
+extern uint16_t finalTimerValue[NumSlot];
+extern int finalTimerArrayShift_Nonzero;
+extern int finalTimerArrayShift_zero; // 标志最终时间数组中没有从0 开始的情况[0, 300, XXX,...]
+extern int TimerArrayLocation;
+extern uint8_t CanRxFlag;
+extern uint16_t CANRx_ID;
+int MesTimesInBC = 0 ;
+uint16_t temp_receive_id, first_mes_after_ref= 0;
+uint16_t temp_MesTranTime = 0, temp_sos_ID, interrupt_sos_times = 1, temp= 10000;
+//void mes_ids();
+void Node0(void);
+void Node1(void);
+void Node2(void);
+int main(void)
+{
+  delay_init();
+  LED_Init();
+  USART_Configuration();
+  CAN_Configuration();
+
+  printf("\r\n");
+  printf("*****************************************************************\r\n");
+  printf("*                                                               *\r\n");
+  printf("*  node 1 gets the reference message");
+  printf("*                                                               *\r\n");
+  printf("*****************************************************************\r\n");
+  TIM3_Int_Init(3500,7199,0);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
+  //TIM2_Int_Init(3500,7199,0);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
+
+  switch(SlaveNode1) //SlaveNode2
+    {
+    case 0:
+      Node0();
+      break;
+    case 1:
+      Node1();
+      break;
+    case 2:
+      Node2();
+      break;
+    default:
+      break;
+    }
+
+}
+
+
+void Node0()
+{
+
+}
+
+void Node1()
+{
+	  while (1)
+    {
+      /*Reiceive SM from master node*/
+      if( CanSMFlag == ENABLE )
+        {
+          LEDC13 = !LEDC13;
+          CanSMFlag = DISABLE;
+          ReiceiveSM();
+          NumBC =0;
+        }
+
+      /*Reiceive reference and start BC*/
+
+      if( CanRefFlag == ENABLE )
+        {
+          uint16_t timelist =0;
+					LEDC14 = !LEDC14;
+          if(NumBC >= TotNumBC)
+            {
+              NumBC = 0;
+            }
+          printf("************ %d. reference start********** \r\n",NumBC);
+					printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
+					printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
+					printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
+					printf("************ %d. reference start********** \r\n",NumBC);
+          MesTimesInBC = TimerISR();
+          
+          TimerSlotSet();	// print timer array is:...
+          temp_receive_id= Received_mes_id[NumBC][1];//NumBC
+          first_mes_after_ref = MesTransmitTime(temp_receive_id);
+          //T3 for counting the time slots
+          printf("finalTimerValue[0] is %d \r\n", finalTimerValue[0]);
+          printf("finalTimerValue[1] is %d \r\n", finalTimerValue[1]);
+          printf("finalTimerValue[2] is %d \r\n", finalTimerValue[2]);
+          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
+          if(MesTimesInBC !=0)
+            {
+              if(finalTimerValue[0]== 0)
+                {
+                  printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
+                  printf("messages should be sent directly after BC comes \r\n");
+                  NodeMesTransmit(Received_mes_id[NumBC][1]);
+                  TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
+                  printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
+                  printf("++++++++Column =1:for message finish++++++++++ \r\n");
+                }
+              else
+                {
+                  TIM3_Int_Init(finalTimerValue[0],7199,ENABLE); // this gets from timerset()
+                }
+            }
+          else
+            {
+              printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
+            }
+          //NodeMesTransmit(Received_mes_id[NumBC][1]);
+
+          interrupt_sos_times =1;
+          NumBC++;
+
+          if(NumBC > TotNumBC)   //3>= 3 // -1  //0
+            {
+              NumBC = 0; // -1;//
+            }
+          printf("************reference end ********** \r\n");
+          printf(" \r\n");
+          CanRefFlag = DISABLE;
+          finalTimerArrayShift_Nonzero = 1;
+          finalTimerArrayShift_zero =1;
+          TimerArrayLocation = 0;
+        }
+
+
+
+
+      /*SOS triggered internal messages*/
+      if(SOS_ISR_flag == ENABLE )
+        {
+
+          LEDA0 = !LEDA0;
+          printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
+          temp_sos_ID = SOS_ID();
+          //printf("SOS_ID()=: %#x \r\n", temp_sos_ID);
+          printf("##########end interrupt########### \r\n");
+          printf(" \r\n");
+          temp_MesTranTime = MesTransmitTime(temp_sos_ID);
+          printf("Exact MesTranTime=: %d \r\n", temp_MesTranTime);
+          interrupt_sos_times ++ ;
+          SOS_ISR_flag = DISABLE;
+        }
+
+      if(CanRxFlag == ENABLE )
+        { 
+					LEDA1 = !LEDA1;
+          printf("#$#$#$#$#$#$#$#Reiceive message from CANRx_ID: %#x #$#$#$#$#$#$#$# \r\n", CANRx_ID);
+          printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5);
+          printf("++++++++message finish sending++++++++++ \r\n");
+          CanRxFlag = DISABLE;
+        }
+
+
+    }
+
+}
+
+void Node2()
+{
+		  while (1)
+    {
+      /*Reiceive SM from master node*/
+      if( CanSMFlag == ENABLE )
+        {
+          LEDC13 = !LEDC13;
+          CanSMFlag = DISABLE;
+          ReiceiveSM();
+          NumBC =0;
+        }
+
+      /*Reiceive reference and start BC*/
+
+      if( CanRefFlag == ENABLE )
+        {
+          uint16_t timelist =0;
+					LEDC14 = !LEDC14;
+          if(NumBC >= TotNumBC)
+            {
+              NumBC = 0;
+            }
+          printf("************ %d. reference start********** \r\n",NumBC);
+					printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
+					printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
+					printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
+					printf("************ %d. reference start********** \r\n",NumBC);
+          MesTimesInBC = TimerISR();
+          
+          TimerSlotSet();	// print timer array is:...
+          temp_receive_id= Received_mes_id[NumBC][1];//NumBC
+          first_mes_after_ref = MesTransmitTime(temp_receive_id);
+          //T3 for counting the time slots
+          printf("finalTimerValue[0] is %d \r\n", finalTimerValue[0]);
+          printf("finalTimerValue[1] is %d \r\n", finalTimerValue[1]);
+          printf("finalTimerValue[2] is %d \r\n", finalTimerValue[2]);
+          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
+          if(MesTimesInBC !=0)
+            {
+              if(finalTimerValue[0]== 0)
+                {
+                  printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
+                  printf("messages should be sent directly after BC comes \r\n");
+                  NodeMesTransmit(Received_mes_id[NumBC][1]);
+                  TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
+                  printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
+                  printf("++++++++Column =1:for message finish++++++++++ \r\n");
+                }
+              else
+                {
+                  TIM3_Int_Init(finalTimerValue[0],7199,ENABLE); // this gets from timerset()
+                }
+            }
+          else
+            {
+              printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
+            }
+          //NodeMesTransmit(Received_mes_id[NumBC][1]);
+
+          interrupt_sos_times =1;
+          NumBC++;
+
+          if(NumBC > TotNumBC)   //3>= 3 // -1  //0
+            {
+              NumBC = 0; // -1;//
+            }
+          printf("************reference end ********** \r\n");
+          printf(" \r\n");
+          CanRefFlag = DISABLE;
+          finalTimerArrayShift_Nonzero = 1;
+          finalTimerArrayShift_zero =1;
+          TimerArrayLocation = 0;
+        }
+
+
+
+
+      /*SOS triggered internal messages*/
+      if(SOS_ISR_flag == ENABLE )
+        {
+
+          LEDA0 = !LEDA0;
+          printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
+          temp_sos_ID = SOS_ID();
+          //printf("SOS_ID()=: %#x \r\n", temp_sos_ID);
+          printf("##########end interrupt########### \r\n");
+          printf(" \r\n");
+          temp_MesTranTime = MesTransmitTime(temp_sos_ID);
+          printf("Exact MesTranTime=: %d \r\n", temp_MesTranTime);
+          interrupt_sos_times ++ ;
+          SOS_ISR_flag = DISABLE;
+        }
+
+      if(CanRxFlag == ENABLE )
+        { 
+					LEDA1 = !LEDA1;
+          printf("#$#$#$#$#$#$#$#Reiceive message from CANRx_ID: %#x #$#$#$#$#$#$#$# \r\n", CANRx_ID);
+          printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx1_DATA0,Rx1_DATA1,Rx1_DATA2,Rx1_DATA3,Rx1_DATA4,Rx1_DATA5);
+          printf("++++++++message finish sending++++++++++ \r\n");
+          CanRxFlag = DISABLE;
+        }
+
+
+    }
+}
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @param  None
+  * @retval None
+  */
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART */
+  USART_SendData(USART1, (uint8_t) ch);
+
+  /* Loop until the end of transmission */
+  while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+    {}
+
+  return ch;
+}
+static void can_delay(__IO u32 nCount)
+{
+  for(; nCount != 0; nCount--);
+}
+
+#ifdef  USE_FULL_ASSERT
+
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *   where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t* file, uint32_t line)
+{
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+
+  /* Infinite loop */
+  while (1)
+    {
+    }
+}
+#endif
+
+/*********************************************************************************************************
+      END FILE
+*********************************************************************************************************/
+
