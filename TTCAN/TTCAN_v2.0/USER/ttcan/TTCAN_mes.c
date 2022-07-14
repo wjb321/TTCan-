@@ -1,6 +1,6 @@
 #include "TTCAN_mes.h"
 #include "can_config.h"
-
+#include "led.h"
 extern uint8_t MES1_DATA0,MES1_DATA1,MES1_DATA2,MES1_DATA3,MES1_DATA4,MES1_DATA5,MES1_DATA6,MES1_DATA7;
 extern uint8_t MES2_DATA0,MES2_DATA1,MES2_DATA2,MES2_DATA3,MES2_DATA4,MES2_DATA5,MES2_DATA6,MES2_DATA7;
 extern uint8_t MES3_DATA0,MES3_DATA1,MES3_DATA2,MES3_DATA3,MES3_DATA4,MES3_DATA5,MES3_DATA6,MES3_DATA7;
@@ -141,17 +141,14 @@ void WheelSpeed(uint16_t ID4)
 {
   uint8_t box;
   CanTxMsg TxMessage;
-
   increase_flag ++;
-
-
-  //CAN_DATA0=0x22;
+//CAN_DATA0=0x22;
 // CAN_DATA1=0x22;
 // CAN_DATA2=0x22;
-  MES4_DATA3=increase_flag;
+   MES4_DATA3=increase_flag;
 // CAN_DATA4=0x5;
 // CAN_DATA5=0x6;
-  //CAN_DATA6=0x61;  CAN_DATA7=0x6e;
+// CAN_DATA6=0x61;  CAN_DATA7=0x6e;
 
   /* transmit */
   TxMessage.StdId = ID4;  /* 设置标准id  注意标准id的最高7位不能全是隐性(1)。共11位 */
@@ -169,11 +166,13 @@ void WheelSpeed(uint16_t ID4)
 //  TxMessage.Data[6] = CAN_DATA6;
 //  TxMessage.Data[7] = CAN_DATA7;
   box = CAN_Transmit(CAN1,&TxMessage);  /* 返回这个信息请求发送的邮箱号0,1,2或没有邮箱申请发送no_box */
- //delay_us(999);
-  delay_ms(2);
+  delay_us(99);
+  //delay_ms(2);
   /* transmit message wang adds */
   while(CAN_TransmitStatus(CAN1,box) == CANTXFAILED);
-  printf(">>>>>increase_flag %#x, ID  %#x is sent<<<<<\r\n",increase_flag,  ID4);
+	LEDB9 = !LEDB9;
+  //printf(">>>>>increase_flag first %#x, ID  %#x is sent<<<<<\r\n",increase_flag,  ID4);
+	//printf(">>>>>increase_flag first is sent<<<<<");
 }
 
 

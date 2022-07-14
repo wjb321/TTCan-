@@ -116,21 +116,22 @@ void Node1()
   NumBC = 1;
   uint8_t CanRefFlag1 = 1;
   int forloop = 1;
+	int Rx1_DATA0_test = 0; // pwm part
   //seperate test end
 
   CAN_Configuration();
-  printf("\r\n");
-  printf("*****************************************************************\r\n");
-  printf("*                                                               *\r\n");
-  printf("*  node 1 gets the reference message");
-  printf("*                                                               *\r\n");
-  printf("*****************************************************************\r\n");
+//  printf("\r\n");
+//  printf("*****************************************************************\r\n");
+//  printf("*                                                               *\r\n");
+//  printf("*  node 1 gets the reference message");
+//  printf("*                                                               *\r\n");
+//  printf("*****************************************************************\r\n");
   TIM4_PWM_Init(899,0);	 //不分频。PWM频率=72000000/900=80Khz
   TIM3_Int_Init(3500,7199,DISABLE);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
   intermediate = Decelerate * Radian * Radius;
 
   //TEST24
-  while (1) // forloop
+  while (forloop) // forloop
     {
       /*get usart interrput(speed info)*/
       if(TempDataReceived)
@@ -138,12 +139,12 @@ void Node1()
           // len=USART_RX_STA&0x3fff;//得到此次接收到的数据长度
           //printf("\r\n the message that you send is:\r\n\r\n");
 
-          for(t=0; t<1; t++)
+         // for(t=0; t<1; t++)
             {
               //CAN_DATA0 = USART_RX_BUF[t];
               if(FillArrayTimes < 2)
                 {
-                  speedArray[Veloarray] = 60 * TMethodSpeed ;
+                  speedArray[Veloarray] = 60 * TempData[0];
                   if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] + 0.009 )
                     {
 //                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
@@ -152,7 +153,7 @@ void Node1()
                       MES4_DATA0 = 1;
 
                       //printf("%d \r\n", CAN_DATA0);
-                      printf("it is blocked \r\n");
+                     // printf("it is blocked \r\n");
                     }
                   else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] + 0.009 )
                     {
@@ -196,7 +197,7 @@ void Node1()
               else
                 {
                   speedArray[0] = speedArray[1] ;
-                  speedArray[1] = (TempData[t]);
+                  speedArray[1] = (TempData[1]);
                   //Veloarray ++;
                   FillArrayTimes = 3;
                   if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] + 0.009 )
@@ -207,7 +208,7 @@ void Node1()
                       MES4_DATA0 = 1;
 
                       //printf("%d \r\n", CAN_DATA0);
-                      printf("it is blocked \r\n");
+                     // printf("it is blocked \r\n");
                     }
                   else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] + 0.009 )
                     {
@@ -249,7 +250,7 @@ void Node1()
                     }
 
                 }
-              MES4_DATA1 = 60* TMethodSpeed;
+              MES4_DATA1 = 60* TempData[1];
               // USART_SendData(USART1, USART_RX_BUF[t]);//向串口1发送数据// 发给另一个串口，
 
               //   while(USART_GetFlagStatus(USART1,USART_FLAG_TC)!=SET);//等待发送结束
@@ -262,17 +263,17 @@ void Node1()
         }
 
 
-      /*Reiceive SM from master node*/
-      if( CanSMFlag == ENABLE )
-        {
-          LEDC13 = !LEDC13;
-          ReiceiveSM();
-          NumBC =0;
-          CanSMFlag = DISABLE;
-        }
+//      /*Reiceive SM from master node*/
+//      if( CanSMFlag == ENABLE )
+//        {
+//          LEDC13 = !LEDC13;
+//          ReiceiveSM();
+//          NumBC =0;
+//          CanSMFlag = DISABLE;
+//        }
 
       /*Reiceive reference and start BC*/
-      if( CanRefFlag == ENABLE )  // TEST24 CanRefFlag1
+      if( CanRefFlag1 == ENABLE )  // TEST24 CanRefFlag1
         {
           LEDC14 = !LEDC14;
           if(NumBC >= TotNumBC)
@@ -291,12 +292,12 @@ void Node1()
           first_mes_after_ref = MesTransmitTime(temp_receive_id);
           //printf("first_mes_after_ref is %d \r\n", first_mes_after_ref);
           //T3 for counting the time slots
-          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
-            {
-              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
-            }
+//          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+//            {
+//              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+//            }
 
-          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
+         // printf("MesTimesInBC is %d \r\n", MesTimesInBC);
           if(MesTimesInBC !=0)
             {
               if(finalTimerValue[0]== 0)
@@ -309,8 +310,8 @@ void Node1()
                     {
                       TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
                     }
-                  printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
-                  printf("++++++++Column =1:for message finish++++++++++ \r\n");
+                //  printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
+                //  printf("++++++++Column =1:for message finish++++++++++ \r\n");
                 }
               else
                 {
@@ -332,7 +333,7 @@ void Node1()
             {
               NumBC = 0; // -1;//
             }
-          printf("************reference end ********** \r\n");
+          //printf("************reference end ********** \r\n");
           // printf(" \r\n");
           CanRefFlag = DISABLE;
           finalTimerArrayShift_Nonzero = 1;
@@ -352,18 +353,18 @@ void Node1()
         {
 
           LEDA0 = !LEDA0;
-          printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
+         // printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
           temp_sos_ID = SOS_ID();
           //printf("SOS_ID()=: %#x \r\n", temp_sos_ID);
-          printf("##########end interrupt########### \r\n");
-          printf(" \r\n");
+          //printf("##########end interrupt########### \r\n");
+          //printf(" \r\n");
           temp_MesTranTime = MesTransmitTime(temp_sos_ID);
           // printf("Exact MesTranTime=: %d \r\n", temp_MesTranTime);
           interrupt_sos_times ++ ;
           SOS_ISR_flag = DISABLE;
         }
 
-      if(CanRxFlag  == ENABLE )  //CanRxFlag1
+      if(CanRxFlag1  == ENABLE )  //CanRxFlag1
         {
           u16 led0pwmval=0;
           u8 dir=1;
@@ -383,26 +384,27 @@ void Node1()
               //LEDB7 = !LEDB7; //122
               printf("**Mes3 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
             }
-          else if(CANRx_ID == mes4_ID)
+          else if(CANRx_ID == mes4_ID) // for test, this is satisfied
             {
               // LEDB8 = !LEDB8; //123
-              printf("**ABS INFO %#x ,%d , %d rps, %#x\r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1,  Rx1_DATA3);
+             // printf("**ABS INFO %#x ,%d , %d rps, %#x\r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1,  Rx1_DATA3);
               //TEST24 change from  Rx1_DATA0 == 0 below
-              while(Rx1_DATA0 == 0)
+              while(Rx1_DATA0_test == 0)
                 {
-                  delay_ms(1);
+                  //delay_ms(1);
                   if(dir)led0pwmval = led0pwmval+ 10 ;
                   //else led0pwmval = led0pwmval- 10;
-
-                  if(led0pwmval>8)Rx1_DATA0 =1 ; //dir=0;
+                 if(led0pwmval>8)Rx1_DATA0 =1 ; //dir=0;
                   if(led0pwmval==0)dir=1;
                   TIM_SetCompare2(TIM4,led0pwmval); // releasing the brake pad
-                  printf("pwm %d \r\n", led0pwmval);
+									Rx1_DATA0_test = 1;
+									  LEDB9 = !LEDB9; //124
+                  //printf("pwm %d \r\n", led0pwmval);
                 }
             }
           else if(CANRx_ID == mes5_ID)
             {
-              LEDB9 = !LEDB9; //124
+              //LEDB9 = !LEDB9; //124
               printf("**Mes5 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
             }
           else if(CANRx_ID == mes6_ID)
@@ -434,41 +436,42 @@ void Node2()
   u16 t;
   u16 len;
   u16 times=0;
-	//1.7.22 down 
+	//1.7.22 down  7.7 test down
 	extern vu32 NumHighFreq;
   int CountingEncoderNumFlag1 =1;
 	int encoderValue;
 	int whileTest = 1;
 	int CanRefFlag1 = 1;
-	//1.7.22 up 
-	
+	int EncoderFlag1 = 1;
+	float TempData[] = {17.92, 16.00, 14.32};
+	//1.7.22 up 7.7 test up
+
   SlaveNode2Flag = 1;
   int FillArrayTimes = 0;
   int Veloarray = 0;
   CAN_Configuration();
-  printf("\r\n");
-  printf("*****************************************************************\r\n");
-  printf("*                                                               *\r\n");
-  printf("*  node 2 gets the reference message");
-  printf("*                                                               *\r\n");
-  printf("*****************************************************************\r\n");
+//  printf("\r\n");
+//  printf("*****************************************************************\r\n");
+//  printf("*                                                               *\r\n");
+//  printf("*  node 2 gets the reference message");
+//  printf("*                                                               *\r\n");
+//  printf("*****************************************************************\r\n");
   //TIM3_Int_Init(3500,7199,DISABLE);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
 	TIM2_Int_Init(arrValue,pscValue,ENABLE); // T method or M method, 05.07.22 try M method
   TIM4_EncoderMode_Config();
 
   //TIM4_PWM_Init(899,0);	 //不分频。PWM频率=72000000/900=80Khz
   intermediate = Decelerate * Radian * Radius;
-  while (1)  //whileTest
+  while(whileTest)  //whileTest
     { 
-    
-			if(EncoderFlag ==1)
+    if(EncoderFlag1 ==1) //7.7 test 
 			{
 				TMethodSpeed = TSpeed(arrValue, pscValue);
 				//speedArray[Veloarray] = TMethodSpeed; 
 				 //printf("TMethodSpeed is this %.3f \r\n", TSpeed(arrValue, pscValue) );     
 				if(FillArrayTimes < 2)
                 {
-                  speedArray[Veloarray] = 60 * TMethodSpeed; 
+                  speedArray[Veloarray] = 60 * TempData[0]; // TMethodSpeed
                    if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] - 0.009 )
                     {
 //                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
@@ -477,7 +480,7 @@ void Node2()
                       MES4_DATA0 = 1;
 
                       //printf("%d \r\n", CAN_DATA0);
-                      printf("it is blocked \r\n");
+                      //printf("it is blocked \r\n");
                     }
                   else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] -0.009  )
                     {
@@ -521,7 +524,7 @@ void Node2()
               else
                 {
                   speedArray[0] = speedArray[1] ;
-                  speedArray[1] = 60 * TMethodSpeed;
+                  speedArray[1] = 60 * TempData[1];
                   //Veloarray ++;
                   FillArrayTimes = 3;
                   if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] - 0.009 )
@@ -532,7 +535,7 @@ void Node2()
                       MES4_DATA0 = 1;
 
                       //printf("%d \r\n", CAN_DATA0);
-                      printf("it is blocked \r\n");
+                      //printf("it is blocked \r\n");
                     }
                   else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] -0.009 )
                     {
@@ -574,23 +577,24 @@ void Node2()
                     }
 
                 }
-              MES4_DATA1 = 60 * TMethodSpeed;
-				EncoderFlag =0;
+              MES4_DATA1 = 60 * TempData[1]; //  7.7 test TMethodSpeed;
+				//EncoderFlag =0;
+				EncoderFlag1 = 0; // 7.7 test
 			}
 
-      /*Reiceive SM from master node 1.7.22 commented*/
-      if( CanSMFlag == ENABLE ) //
-        {
-          LEDC13 = !LEDC13;
-          CanSMFlag = DISABLE;
-          ReiceiveSM();
-          NumBC =0;
-        }
+//      /*Reiceive SM from master node 1.7.22 commented*/
+//      if( CanSMFlag == ENABLE ) //
+//        {
+//          LEDC13 = !LEDC13;
+//          CanSMFlag = DISABLE;
+//          ReiceiveSM();
+//          NumBC =0;
+//        }
 
       /*Reiceive reference and start BC*/
       /*1.7.22, 5.7.22  CanRefFlag1*/
 					 
-      if( CanRefFlag == ENABLE) //CanRefFlag == ENABLE
+      if( CanRefFlag1 == ENABLE) //CanRefFlag == ENABLE
         {
 
           //LEDC14 = !LEDC14;
@@ -599,16 +603,18 @@ void Node2()
               NumBC = 0;
             }
           //printf("\r\n");
-          printf("** %d. reference start ** \r\n",NumBC);
+        
+					//printf("** %d. reference start ** \r\n",NumBC);
+						
           //printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
           //printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
           //printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
           //printf("************ %d. reference start********** \r\n",NumBC);
           MesTimesInBC = TimerISR();
 
-          TimerSlotSet();	// print timer array is:...
-          temp_receive_id= Received_mes_id[NumBC][1];//NumBC
-          first_mes_after_ref = MesTransmitTime(temp_receive_id);
+          //TimerSlotSet();	// print timer array is:...
+          //temp_receive_id= Received_mes_id[NumBC][1];//NumBC
+          //first_mes_after_ref = MesTransmitTime(temp_receive_id);
           //T3 for counting the time slots
 //          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
 //            {
@@ -620,7 +626,7 @@ void Node2()
             {
               if(finalTimerValue[0]== 0)
                 {
-                  printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
+                  //printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
                   //printf("messages should be sent directly after BC comes \r\n");
                   NodeMesTransmit(Received_mes_id[NumBC][1]);
 
@@ -630,17 +636,17 @@ void Node2()
                     }
                   //TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
                   // printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
-                  printf("++++++++Column =1:for message finish++++++++++ \r\n");
+                  //printf("++++++++Column =1:for message finish++++++++++ \r\n");
                 }
               else
                 {
                   TIM3_Int_Init(finalTimerValue[0],7199,ENABLE); // this gets from timerset()
                 }
             }
-          else
-            {
-              printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
-            }
+//          else
+//            {
+//              printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
+//            }
           interrupt_sos_times =1;
           NumBC++;
 
@@ -648,8 +654,10 @@ void Node2()
             {
               NumBC = 0; // -1;//
             }
-          printf("************reference end ********** \r\n");
-          printf(" \r\n");
+						
+          //printf("************reference end ********** \r\n");
+         
+						//printf(" \r\n");
           CanRefFlag = DISABLE;
           finalTimerArrayShift_Nonzero = 1;
           finalTimerArrayShift_zero =1;
@@ -661,26 +669,26 @@ void Node2()
 
 
       /*SOS triggered internal messages*/
-      if(SOS_ISR_flag == ENABLE )  //SOS_ISR_flag == ENABLE 
-        {
+//      if(SOS_ISR_flag == ENABLE )  //SOS_ISR_flag == ENABLE 
+//        {
 
-          LEDA0 = !LEDA0;
-          printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
-          temp_sos_ID = SOS_ID();
-          printf("##########end interrupt########### \r\n");
-          printf(" \r\n");
-          temp_MesTranTime = MesTransmitTime(temp_sos_ID);
-          // printf("Exact MesTranTime=: %d \r\n", temp_MesTranTime);
-          interrupt_sos_times ++ ;
-          SOS_ISR_flag = DISABLE;
-        }
+//          LEDA0 = !LEDA0;
+//          printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
+//          temp_sos_ID = SOS_ID();
+//          printf("##########end interrupt########### \r\n");
+//          printf(" \r\n");
+//          temp_MesTranTime = MesTransmitTime(temp_sos_ID);
+//          // printf("Exact MesTranTime=: %d \r\n", temp_MesTranTime);
+//          interrupt_sos_times ++ ;
+//          SOS_ISR_flag = DISABLE;
+//        }
 
       if(CanRxFlag == ENABLE )  //CanRxFlag == ENABLE
         {
           u16 led0pwmval=0;
           u8 dir=1;
           LEDA1 = !LEDA1;
-          if(CANRx_ID == mes1_ID)
+          if(CANRx_ID == mes1_ID)   
             {
               LEDB5 = !LEDB5; // 120
               printf("**Mes1 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
@@ -701,7 +709,7 @@ void Node2()
               printf("**ABS INFO：(CANRx_ID, wheel status, speed) = ( %#x ,%d , %d rps, %#x)** \r\n", CANRx_ID, Rx1_DATA0, (Rx1_DATA1),  Rx1_DATA3);
               while(Rx1_DATA0 == 1)
                 {
-                  delay_ms(1);
+                  //delay_ms(1);
                   if(dir)led0pwmval = led0pwmval+ 10 ;
                   //else led0pwmval = led0pwmval- 10;
 
@@ -713,7 +721,7 @@ void Node2()
             }
           else if(CANRx_ID == mes5_ID)
             {
-              LEDB9 = !LEDB9; //124
+              //LEDB9 = !LEDB9; //124
               printf("**Mes5 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
             }
           else if(CANRx_ID == mes6_ID)
@@ -729,7 +737,7 @@ void Node2()
           CanRxFlag = DISABLE;
         }
 
-     //whileTest =0; //06.07.22 close this test
+     whileTest =0; //06.07.22 close this test  7.7 opens this test
     }
 }
 

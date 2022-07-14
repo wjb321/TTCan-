@@ -18,7 +18,7 @@ int main(void)
   TIM3_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
   delay_us((int)((FrequencyInfo* pow(10,3))/40));
   TIM2_Int_Init(FrequencyInfo,7199);//10Khz的计数频率，计数到5000为500ms
-  //delay_ms(10);
+  delay_ms(10);
   while(1)
     {
       key=KEY_Scan(0);	//得到键值

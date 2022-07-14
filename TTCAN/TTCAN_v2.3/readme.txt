@@ -156,3 +156,8 @@ the problem is found£º all the nodes for counting the frequences should be commo
 7.7.22
 now encoder mode send rising edges and node1 calculates the speed and then this speed is sent via ttcan and node2 responses according to the state.
 but still, the encoder has some jumps when press the keys, but it is pretty normal. probally it needs kalman filter to remove the unexpected jumps.
+
+
+13.7
+ttcan encoder number counting values in basic nodes(14) are different with warship bard(204), probably the timer configures wronly.
+checking the difference, ttcan node will be around 18 times slower than the calculation in warship. check it after work

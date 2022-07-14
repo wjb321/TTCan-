@@ -20,9 +20,12 @@
 #define   SlaveNode2 2
 
 int main(void)
-{
+{ 
+
+	
   Delay_init();
   LED_Init();
+  delay_ms(10);
   USART_Configuration();
  	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
   switch(SlaveNode2) //SlaveNode2

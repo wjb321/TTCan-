@@ -7,19 +7,27 @@
 #define ENCODER_TIM_PSC  0          /*计数器分频*/
 #define ENCODER_TIM_PERIOD  65535   /*计数器最大值*/
 #define CNT_INIT 0  
-#define ENCODER_RESOLUTION 12   /*编码器一圈的物理脉冲数*/
+#define ENCODER_RESOLUTION 11   /*编码器一圈的物理脉冲数*/
 #define ENCODER_MULTIPLE 4       /*编码器倍频，通过定时器的编码器模式设置*/
-#define MOTOR_REDUCTION_RATIO 1 /*电机的减速比*/
-#define TOTAL_RESOLUTION ( ENCODER_RESOLUTION*ENCODER_MULTIPLE*MOTOR_REDUCTION_RATIO ) 
+#define MOTOR_REDUCTION_RATIO 34 /*电机的减速比*/
+#define TOTAL_RESOLUTION    ( ENCODER_RESOLUTION*ENCODER_MULTIPLE*MOTOR_REDUCTION_RATIO ) 
 //extern int sampleTime; 
+extern u16 TarrValue ;
+extern u16 TpscValue;
+extern u16 MarrValue ;
+extern u16 MpscValue;
+extern vu32 TMethodSpeed ;
+//vu32 NumHighFreq ;
+extern vu32 NumHighFreq;
+int rounds = 0;
 // 读取定时器计数值
  int read_encoder(void) //static
 {
     int encoderNum = 0;
-	  delay_ms(1);
+	  //delay_ms(1);
     encoderNum = (int)((int16_t)(TIM4->CNT)); /*CNT为uint32, 转为int16*/
     TIM_SetCounter(TIM4, CNT_INIT);/*CNT设初值*/
-	
+	  //printf("encoder %d \r\n",encoderNum);
     return encoderNum;
 }
 
@@ -39,15 +47,24 @@ int calc_motor_rotate_speed()
 	
 }
 
-#define ENCODER_RESOLUTION 12   /*编码器一圈的物理脉冲数*/
-#define ENCODER_MULTIPLE 4       /*编码器倍频，通过定时器的编码器模式设置*/
-#define MOTOR_REDUCTION_RATIO 1 /*电机的减速比*/
-#define TOTAL_RESOLUTION ( ENCODER_RESOLUTION*ENCODER_MULTIPLE*MOTOR_REDUCTION_RATIO ) 
-extern u16 arrValue ;
-extern u16 pscValue;
-extern vu32 TMethodSpeed ;
-//vu32 NumHighFreq ;
-extern vu32 NumHighFreq;
+
+float Mspeed(int arr, int psc)  //psc here is 7199, so it is fine
+{
+	int encoderNum = 0;
+  float Mv = 0;
+	encoderNum = read_encoder() + 1496* rounds;
+	Mv = (float)(60* encoderNum/(TOTAL_RESOLUTION * (arr/pow(10.0,4.0)))) ;  //differences between two nodes the counting value is around 18
+	rounds = 0;
+	//printf("rounds %d\n",rounds);
+	//printf("encoderNum %d\n",encoderNum);
+	//printf("%d\n",TIM4->CNT);
+	//printf("%.3f\n",(TOTAL_RESOLUTION * (arr/pow(10.0,4.0))));
+	printf("Mv is %.3f\n",Mv);
+	
+	return Mv;
+	//printf("%.3f\n",Mv);
+}
+
 float TSpeed(int arr, int psc )
 {
 	float Tv = 0;
@@ -101,7 +118,6 @@ void TIM2_Int_Init(u16 arr,u16 psc, u8 timer_enable_flag)
 {
   TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure1;
   NVIC_InitTypeDef NVIC_InitStructure;
-
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE); //时钟使能
 
   //定时器TIM2初始化
@@ -123,12 +139,40 @@ void TIM2_Int_Init(u16 arr,u16 psc, u8 timer_enable_flag)
 
   TIM_Cmd(TIM2, timer_enable_flag );  //使能TIMx
 }
+
+//void M_TIM2_Int_Init(u16 arr,u16 psc, u8 timer_enable_flag)
+//{
+//  TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure1;
+//  NVIC_InitTypeDef NVIC_InitStructure;
+
+//  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE); //时钟使能
+
+//  //定时器TIM2初始化
+//  TIM_TimeBaseStructure1.TIM_Period = arr; //设置在下一个更新事件装入活动的自动重装载寄存器周期的值
+//  TIM_TimeBaseStructure1.TIM_Prescaler =psc; //设置用来作为TIMx时钟频率除数的预分频值
+//  TIM_TimeBaseStructure1.TIM_ClockDivision = TIM_CKD_DIV1; //设置时钟分割:TDTS = Tck_tim
+//  TIM_TimeBaseStructure1.TIM_CounterMode = TIM_CounterMode_Up;  //TIM向上计数模式
+//  TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure1); //根据指定的参数初始化TIMx的时间基数单位
+
+//  TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE ); //使能指定的TIM3中断,允许更新中断
+
+//  //中断优先级NVIC设置
+//  NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;  //TIM2中断
+//  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;  //先占优先级0级
+//  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;  //从优先级3级
+//  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道被使能
+//  NVIC_Init(&NVIC_InitStructure);  //初始化NVIC寄存器
+
+
+//  TIM_Cmd(TIM2, timer_enable_flag );  //使能TIMx
+//}
+
 extern uint8_t MasterNodeFlag ;
 extern uint8_t MasterNumBC;
 uint16_t mes_send_flag = 0;
 uint8_t Transmit_time_flag = 0;
-
-vu32 NumHighFreq; // for high frequency method
+vu32 NumHighFreq; // for high frequency method ADC1
+uint16_t Mmethodflag = 0;
 
 void TIM2_IRQHandler(void)   //TIM3中断
 {
@@ -138,7 +182,10 @@ void TIM2_IRQHandler(void)   //TIM3中断
 
       if(SlaveNode2Flag == 1 )
         { 
-          NumHighFreq ++;
+					 Mspeed(MarrValue, MpscValue);
+					//Mmethodflag = 1;
+					
+          //NumHighFreq ++;
          }
       else if(MasterNodeFlag == 1)  // node2 will count the input A and B phase.
         {
@@ -195,7 +242,7 @@ void TIM4_EncoderMode_Config(void)
     GPIO_Init(GPIOB, &GPIO_InitStructure);                           
 
     TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-    TIM_TimeBaseStructure.TIM_Period = 5;//7;//7;  //设定计数器重装值   TIMx_ARR = 1024*4-1 这是360线的
+    TIM_TimeBaseStructure.TIM_Period = 1495;//7;//7;  //设定计数器重装值   TIMx_ARR = 1024*4-1 这是360线的    1979
     TIM_TimeBaseStructure.TIM_Prescaler = 0; //TIM4时钟预分频值
     TIM_TimeBaseStructure.TIM_ClockDivision =TIM_CKD_DIV1 ;//设置时钟分割 T_dts = T_ck_int    
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; //TIM向上计数 
@@ -203,7 +250,7 @@ void TIM4_EncoderMode_Config(void)
 
     TIM_EncoderInterfaceConfig(TIM4, TIM_EncoderMode_TI12, TIM_ICPolarity_BothEdge ,TIM_ICPolarity_BothEdge);//使用编码器模式3，上升下降都计数
     TIM_ICStructInit(&TIM_ICInitStructure);//将结构体中的内容缺省输入
-    TIM_ICInitStructure.TIM_ICFilter =12;// 6;// 0xf//选择输入比较滤波器 
+    TIM_ICInitStructure.TIM_ICFilter =0xf;// 6;// 0xf//选择输入比较滤波器 
     TIM_ICInit(TIM4, &TIM_ICInitStructure);//将TIM_ICInitStructure中的指定参数初始化TIM3
 
 
@@ -265,4 +312,19 @@ void TIM4_PWM_Init(u16 arr,u16 psc)
 	TIM_Cmd(TIM4, ENABLE);  //使能TIM3
 	
 
+}
+
+
+//int EncoderFlag = 0;
+void TIM4_IRQHandler(void)   //TIM3中断
+{
+	if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET) //检查指定的TIM中断发生与否:TIM 中断源 
+		{    
+			rounds ++;
+		//EncoderFlag =1;
+			TIM_SetCounter(TIM4, CNT_INIT);/*CNT设初值*/
+        			
+		   
+		}
+		TIM_ClearITPendingBit(TIM4, TIM_IT_Update );  //清除TIMx的中断待处理位:TIM 中断源 
 }

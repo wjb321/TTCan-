@@ -1,7 +1,6 @@
 
 #include "nodes.h"
 #include "can_config.h"
-#include "usart.h"
 #include "ttcan.h"
 #include "stm32f10x.h"
 #include "timer.h"
@@ -15,10 +14,6 @@
 #include "stm32f10x_it.h"
 
 #define PI 3.14159
-#define ENCODER_RESOLUTION 12   /*编码器一圈的物理脉冲数*/
-#define ENCODER_MULTIPLE 4       /*编码器倍频，通过定时器的编码器模式设置*/
-#define MOTOR_REDUCTION_RATIO 1 /*电机的减速比*/
-#define TOTAL_RESOLUTION  ( ENCODER_RESOLUTION*ENCODER_MULTIPLE*MOTOR_REDUCTION_RATIO )   
 #define CNT_INIT 0 
 
 int sm_id_nonzero_flag = 0;
@@ -39,6 +34,7 @@ uint8_t   SlaveNode2Flag = 0;
 float speedArray[2] = {0};
 int VeloVar1 = 0, VeloVar2 = 0 ;
 // 填满速度矩阵
+/*common parts for node1 and node2*/
 float DecelerateRate = 1.5;
 float VeloThreshold = 15;
 float Phase1 = 0;
@@ -47,12 +43,22 @@ float Decelerate = 30;
 float Radian = 0.523;
 float Radius = 0.045;
 float intermediate = 0;
+/*node 0*/ 
+
+/*node 1*/
 
 /*node 2*/
-	u16 arrValue = 69;
-	u16 pscValue = 71;
-  float TMethodSpeed =0; 
-/*node 2*/
+/* Tmethod configuration */
+	u16 TarrValue = 69;
+	u16 TpscValue = 71;
+  float TMethodSpeed =0;
+  extern int EncoderFlag;
+  extern int Mmethodflag;
+/*Mmethod configuration */
+	u16 MarrValue = 499;
+	u16 MpscValue = 7199;
+  float MMethodSpeed =0; 
+
 
 void Node0()
 
@@ -81,17 +87,17 @@ void Node0()
           SM_ID_Sent_flag = DISABLE;
         }
 
-      if(mes_send_flag == ENABLE)
-        {
-          printf("master node sends MasterNumBC =%d:\r\n", MasterNumBC);
-          SendRef(MaskID_Ref, TotNumBC, NumSlot, SlotTime);
-          mes_send_flag = DISABLE;
-          if(MasterNumBC >= TotNumBC)
-            {
-              MasterNumBC = 0;
-            }
+//      if(mes_send_flag == ENABLE)
+//        {
+//          printf("master node sends MasterNumBC =%d:\r\n", MasterNumBC);
+//          SendRef(MaskID_Ref, TotNumBC, NumSlot, SlotTime);
+//          mes_send_flag = DISABLE;
+//          if(MasterNumBC >= TotNumBC)
+//            {
+//              MasterNumBC = 0;
+//            }
 
-        }
+//        }
     }
 }
 
@@ -143,7 +149,7 @@ void Node1()
               //CAN_DATA0 = USART_RX_BUF[t];
               if(FillArrayTimes < 2)
                 {
-                  speedArray[Veloarray] = 60 * TMethodSpeed ;
+                  speedArray[Veloarray] = MMethodSpeed ;
                   if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] + 0.009 )
                     {
 //                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
@@ -249,7 +255,7 @@ void Node1()
                     }
 
                 }
-              MES4_DATA1 = 60* TMethodSpeed;
+              MES4_DATA1 = MMethodSpeed;
               // USART_SendData(USART1, USART_RX_BUF[t]);//向串口1发送数据// 发给另一个串口，
 
               //   while(USART_GetFlagStatus(USART1,USART_FLAG_TC)!=SET);//等待发送结束
@@ -428,7 +434,7 @@ void Node1()
 
 }
 
-extern int EncoderFlag;
+
 void Node2()
 {
   u16 t;
@@ -441,10 +447,9 @@ void Node2()
 	int whileTest = 1;
 	int CanRefFlag1 = 1;
 	//1.7.22 up 
-	
-  SlaveNode2Flag = 1;
   int FillArrayTimes = 0;
   int Veloarray = 0;
+	SlaveNode2Flag = 1;
   CAN_Configuration();
   printf("\r\n");
   printf("*****************************************************************\r\n");
@@ -452,284 +457,293 @@ void Node2()
   printf("*  node 2 gets the reference message");
   printf("*                                                               *\r\n");
   printf("*****************************************************************\r\n");
+	
   //TIM3_Int_Init(3500,7199,DISABLE);//10Khz的计数频率，计数到5000为500ms, 9999: 1 s
-	TIM2_Int_Init(arrValue,pscValue,ENABLE); // T method or M method, 05.07.22 try M method
-  TIM4_EncoderMode_Config();
+	//T_TIM2_Int_Init(MarrValue,MarrValue,ENABLE); // T method or M method, 05.07.22 try M method
+	TIM4_EncoderMode_Config();
+	TIM2_Int_Init(MarrValue,MarrValue,ENABLE); // T method or M method, 05.07.22 try M method
+  //TIM4_EncoderMode_Config();
 
   //TIM4_PWM_Init(899,0);	 //不分频。PWM频率=72000000/900=80Khz
   intermediate = Decelerate * Radian * Radius;
   while (1)  //whileTest
     { 
     
-			if(EncoderFlag ==1)
-			{
-				TMethodSpeed = TSpeed(arrValue, pscValue);
-				//speedArray[Veloarray] = TMethodSpeed; 
-				 //printf("TMethodSpeed is this %.3f \r\n", TSpeed(arrValue, pscValue) );     
-				if(FillArrayTimes < 2)
-                {
-                  speedArray[Veloarray] = 60 * TMethodSpeed; 
-                   if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] - 0.009 )
-                    {
+//			if(Mmethodflag ==1)
+//			{
+//				/*Tmethod*/
+//				//TMethodSpeed = TSpeed(TarrValue, TarrValue);
+//				
+//				/*Mmethod*/
+//				MMethodSpeed = Mspeed(MarrValue, MpscValue); // try in flag or iqr directly
+//				//speedArray[Veloarray] = TMethodSpeed; 
+//				 //printf("TMethodSpeed is this %.3f \r\n", TSpeed(arrValue, pscValue) );     
+//				if(FillArrayTimes < 2)
+//                {
+//                  speedArray[Veloarray] =  MMethodSpeed; 
+//                   if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] - 0.009 )
+//                    {
+////                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
+////                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+////                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
+//                      MES4_DATA0 = 1;
+
+//                      //printf("%d \r\n", CAN_DATA0);
+//                      printf("it is blocked \r\n");
+//                    }
+//                  else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] -0.009  )
+//                    {
+//                      printf("speedArray[1]  is %f\r\n", speedArray[1] );
+//                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+//                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
+//                      MES4_DATA0 = 2;
+//                      //  printf("%d \r\n", CAN_DATA0);
+//                      printf("decelerate \r\n");
+//                    }
+//                  else if (speedArray[1] >= speedArray[0] + 0.009 )
+//                    {
 //                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
 //                      printf("speedArray[0] is %f \r\n", speedArray[0]);
 //                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-                      MES4_DATA0 = 1;
-
-                      //printf("%d \r\n", CAN_DATA0);
-                      printf("it is blocked \r\n");
-                    }
-                  else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] -0.009  )
-                    {
-                      printf("speedArray[1]  is %f\r\n", speedArray[1] );
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-                      MES4_DATA0 = 2;
-                      //  printf("%d \r\n", CAN_DATA0);
-                      printf("decelerate \r\n");
-                    }
-                  else if (speedArray[1] >= speedArray[0] + 0.009 )
-                    {
-                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-                      MES4_DATA0 = 3;
-                      // printf("%d \r\n", CAN_DATA0);
-                      printf("celerate \r\n");
-                    }
-                  else if (speedArray[1] + 0.001 <=speedArray[0] <= speedArray[1] + 0.009 || speedArray[0] + 0.001 <=speedArray[1] <= speedArray[0] + 0.009 || speedArray[0] == speedArray[1]  ) //||  (VeloVar1 >0 && VeloVar2 == 0)
-                    {
-                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-                      printf("constant speed\r\n");
-                      MES4_DATA0 = 4;
-                      // printf("%d \r\n", CAN_DATA0);
-                    }
-                  else
-                    {
-                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0);
-                      MES4_DATA0 = 5;
-                      // printf("%d \r\n", CAN_DATA0);
-                      printf("other status\r\n");
-                    }
-                  FillArrayTimes ++;
-                  Veloarray ++;  //1  2 3
-                }
-              else
-                {
-                  speedArray[0] = speedArray[1] ;
-                  speedArray[1] = 60 * TMethodSpeed;
-                  //Veloarray ++;
-                  FillArrayTimes = 3;
-                  if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] - 0.009 )
-                    {
+//                      MES4_DATA0 = 3;
+//                      // printf("%d \r\n", CAN_DATA0);
+//                      printf("celerate \r\n");
+//                    }
+//                  else if (speedArray[1] + 0.001 <=speedArray[0] <= speedArray[1] + 0.009 || speedArray[0] + 0.001 <=speedArray[1] <= speedArray[0] + 0.009 || speedArray[0] == speedArray[1]  ) //||  (VeloVar1 >0 && VeloVar2 == 0)
+//                    {
 //                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
 //                      printf("speedArray[0] is %f \r\n", speedArray[0]);
 //                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-                      MES4_DATA0 = 1;
+//                      printf("constant speed\r\n");
+//                      MES4_DATA0 = 4;
+//                      // printf("%d \r\n", CAN_DATA0);
+//                    }
+//                  else
+//                    {
+//                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
+//                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+//                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0);
+//                      MES4_DATA0 = 5;
+//                      // printf("%d \r\n", CAN_DATA0);
+//                      printf("other status\r\n");
+//                    }
+//                  FillArrayTimes ++;
+//                  Veloarray ++;  //1  2 3
+//                }
+//              else
+//                {
+//                  speedArray[0] = speedArray[1] ;
+//                  speedArray[1] = MMethodSpeed;
+//                  //Veloarray ++;
+//                  FillArrayTimes = 3;
+//                  if(speedArray[1] < ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] - 0.009 )
+//                    {
+////                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
+////                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+////                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
+//                      MES4_DATA0 = 1;
 
-                      //printf("%d \r\n", CAN_DATA0);
-                      printf("it is blocked \r\n");
-                    }
-                  else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] -0.009 )
-                    {
-                      printf("speedArray[1]  is %f\r\n", speedArray[1]);
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-                      MES4_DATA0 = 2;
-                      //  printf("%d \r\n", CAN_DATA0);
-                      printf("decelerate \r\n");
-                    }
-                  else if (speedArray[1] >= speedArray[0] + 0.009 )
-                    {
-                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-                      MES4_DATA0 = 3;
-                      // printf("%d \r\n", CAN_DATA0);
-                      printf("celerate \r\n");
-                    }
-                  else if (speedArray[1] + 0.001 <=speedArray[0] <= speedArray[1] + 0.009 || speedArray[0] + 0.001 <=speedArray[1] <= speedArray[0] + 0.009 || speedArray[0] == speedArray[1]  ) //||  (VeloVar1 >0 && VeloVar2 == 0)
-                    {
-                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
-											printf("sqrt  is %f \r\n", sqrt(pow(speedArray[0],2) - 4* intermediate));
-											printf("sqrt *2  is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate)) );
-                      printf("constant speed\r\n");
-                      MES4_DATA0 = 4;
-                      // printf("%d \r\n", CAN_DATA0);
-                    }
-                  else
-                    {
-                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
-                      printf("speedArray[0] is %f \r\n", speedArray[0]);
-                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0);
-                      MES4_DATA0 = 5;
-                      // printf("%d \r\n", CAN_DATA0);
-                      printf("other status\r\n");
-                    }
+//                      //printf("%d \r\n", CAN_DATA0);
+//                      printf("it is blocked \r\n");
+//                    }
+//                  else if(speedArray[1] >= ((speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 ) && speedArray[1] < speedArray[0] -0.009 )
+//                    {
+////                      printf("speedArray[1]  is %f\r\n", speedArray[1]);
+////                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+////                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
+//                      MES4_DATA0 = 2;
+//                      //  printf("%d \r\n", CAN_DATA0);
+//                      printf("decelerate \r\n");
+//                    }
+//                  else if (speedArray[1] >= speedArray[0] + 0.009 )
+//                    {
+////                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
+////                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+////                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
+//                      MES4_DATA0 = 3;
+//                      // printf("%d \r\n", CAN_DATA0);
+//                      printf("celerate \r\n");
+//                    }
+//                  else if (speedArray[1] + 0.001 <=speedArray[0] <= speedArray[1] + 0.009 || speedArray[0] + 0.001 <=speedArray[1] <= speedArray[0] + 0.009 || speedArray[0] == speedArray[1]  ) //||  (VeloVar1 >0 && VeloVar2 == 0)
+//                    {
+////                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
+////                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+////                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0 );
+////											printf("sqrt  is %f \r\n", sqrt(pow(speedArray[0],2) - 4* intermediate));
+////											printf("sqrt *2  is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate)) );
+////                      printf("constant speed\r\n");
+//                      MES4_DATA0 = 4;
+//                      // printf("%d \r\n", CAN_DATA0);
+//                    }
+//                  else
+//                    {
+//                      printf("speedArray[1]  is %f \r\n", speedArray[1] );
+//                      printf("speedArray[0] is %f \r\n", speedArray[0]);
+//                      printf("cal is %f \r\n", (speedArray[0] + sqrt(pow(speedArray[0],2) - 4* intermediate))/ 2.0);
+//                      MES4_DATA0 = 5;
+//                      // printf("%d \r\n", CAN_DATA0);
+//                      printf("other status\r\n");
+//                    }
 
-                }
-              MES4_DATA1 = 60 * TMethodSpeed;
-				EncoderFlag =0;
-			}
+//                }
+//              MES4_DATA1 = MMethodSpeed;
+//			        Mmethodflag = 0;
+//							//EncoderFlag =0; //Tmethod flag
+//								
+//			}
 
-      /*Reiceive SM from master node 1.7.22 commented*/
-      if( CanSMFlag == ENABLE ) //
-        {
-          LEDC13 = !LEDC13;
-          CanSMFlag = DISABLE;
-          ReiceiveSM();
-          NumBC =0;
-        }
+//      /*Reiceive SM from master node 1.7.22 commented*/
+//      if( CanSMFlag == ENABLE ) //
+//        {
+//          LEDC13 = !LEDC13;
+//          CanSMFlag = DISABLE;
+//          ReiceiveSM();
+//          NumBC =0;
+//        }
 
-      /*Reiceive reference and start BC*/
-      /*1.7.22, 5.7.22  CanRefFlag1*/
-					 
-      if( CanRefFlag == ENABLE) //CanRefFlag == ENABLE
-        {
+//      /*Reiceive reference and start BC*/
+//      /*1.7.22, 5.7.22  CanRefFlag1*/
+//					 
+//      if( CanRefFlag == ENABLE) //CanRefFlag == ENABLE
+//        {
 
-          //LEDC14 = !LEDC14;
-          if(NumBC >= TotNumBC)
-            {
-              NumBC = 0;
-            }
-          //printf("\r\n");
-          printf("** %d. reference start ** \r\n",NumBC);
-          //printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
-          //printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
-          //printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
-          //printf("************ %d. reference start********** \r\n",NumBC);
-          MesTimesInBC = TimerISR();
-
-          TimerSlotSet();	// print timer array is:...
-          temp_receive_id= Received_mes_id[NumBC][1];//NumBC
-          first_mes_after_ref = MesTransmitTime(temp_receive_id);
-          //T3 for counting the time slots
-//          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+//          //LEDC14 = !LEDC14;
+//          if(NumBC >= TotNumBC)
 //            {
-//              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+//              NumBC = 0;
+//            }
+//          //printf("\r\n");
+//          //printf("** %d. reference start ** \r\n",NumBC);
+//          //printf("**receive_(data0,data1,data2,data3,data4,data5) = (%d, %d, %d, %d, %d, %d )** \r\n",Rx0_DATA0,Rx0_DATA1,Rx0_DATA2,Rx0_DATA3,Rx0_DATA4,Rx0_DATA5);
+//          //printf("***time stamp (accumulateed, new) are (%d, %d)*** \r\n",timeStamp, TimeStampRx1);
+//          //printf("***time stamp (accumulateed, new) in 0x are (%#x, %#x)*** \r\n",timeStamp, TimeStampRx1);
+//          //printf("************ %d. reference start********** \r\n",NumBC);
+//          MesTimesInBC = TimerISR();
+
+//          TimerSlotSet();	// print timer array is:...
+//          temp_receive_id= Received_mes_id[NumBC][1];//NumBC
+//          first_mes_after_ref = MesTransmitTime(temp_receive_id);
+//          //T3 for counting the time slots
+////          for(int mestimes = 0; mestimes < MesTimesInBC; mestimes ++)
+////            {
+////              printf("finalTimerValue[%d] is %d \r\n", mestimes, finalTimerValue[mestimes]);
+////            }
+
+////          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
+//          if(MesTimesInBC !=0)
+//            {
+//              if(finalTimerValue[0]== 0)
+//                {
+//                  //printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
+//                  //printf("messages should be sent directly after BC comes \r\n");
+//                  NodeMesTransmit(Received_mes_id[NumBC][1]);
+
+//                  if(MesTimesInBC > 1)
+//                    {
+//                      TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
+//                    }
+//                  //TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
+//                  // printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
+//                  //printf("++++++++Column =1:for message finish++++++++++ \r\n");
+//                }
+//              else
+//                {
+//                  TIM3_Int_Init(finalTimerValue[0],7199,ENABLE); // this gets from timerset()
+//                }
+//            }
+//          else
+//            {
+//              printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
+//            }
+//          interrupt_sos_times =1;
+//          NumBC++;
+
+//          if(NumBC > TotNumBC)   //3>= 3 // -1  //0
+//            {
+//              NumBC = 0; // -1;//
+//            }
+//         // printf("************reference end ********** \r\n");
+//          printf(" \r\n");
+//          CanRefFlag = DISABLE;
+//          finalTimerArrayShift_Nonzero = 1;
+//          finalTimerArrayShift_zero =1;
+//          TimerArrayLocation = 0;
+//				  //CanRefFlag1 = 0;
+//        }
+
+
+
+
+//      /*SOS triggered internal messages*/
+//      if(SOS_ISR_flag == ENABLE )  //SOS_ISR_flag == ENABLE 
+//        {
+
+//          LEDA0 = !LEDA0;
+//          printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
+//          temp_sos_ID = SOS_ID();
+//          printf("##########end interrupt########### \r\n");
+//          printf(" \r\n");
+//          temp_MesTranTime = MesTransmitTime(temp_sos_ID);
+//          // printf("Exact MesTranTime=: %d \r\n", temp_MesTranTime);
+//          interrupt_sos_times ++ ;
+//          SOS_ISR_flag = DISABLE;
+//        }
+
+//      if(CanRxFlag == ENABLE )  //CanRxFlag == ENABLE
+//        {
+//          u16 led0pwmval=0;
+//          u8 dir=1;
+//          LEDA1 = !LEDA1;
+//          if(CANRx_ID == mes1_ID)
+//            {
+//              LEDB5 = !LEDB5; // 120
+//              printf("**Mes1 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes2_ID)
+//            {
+//             // LEDB6 = !LEDB6; //121
+//              printf("**Mes2 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes3_ID)
+//            {
+//              //LEDB7 = !LEDB7; //122
+//              printf("**Mes3 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes4_ID)
+//            {
+//              // LEDB8 = !LEDB8; //123
+//              printf("**ABS INFO：(CANRx_ID, wheel status, speed) = ( %#x ,%d , %d rps, %#x)** \r\n", CANRx_ID, Rx1_DATA0, (Rx1_DATA1),  Rx1_DATA3);
+//              while(Rx1_DATA0 == 1)
+//                {
+//                  delay_ms(1);
+//                  if(dir)led0pwmval = led0pwmval+ 10 ;
+//                  //else led0pwmval = led0pwmval- 10;
+
+//                  if(led0pwmval>1500)dir=0;
+//                  if(led0pwmval==0)dir=1;
+//                  TIM_SetCompare2(TIM4,led0pwmval); // releasing the brake pad
+//                  printf("pwm works now %d \r\n", led0pwmval);
+//                }
+//            }
+//          else if(CANRx_ID == mes5_ID)
+//            {
+//              LEDB9 = !LEDB9; //124
+//              printf("**Mes5 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else if(CANRx_ID == mes6_ID)
+//            {
+//              LEDA2 = !LEDA2; //125
+//              printf("**Mes6 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
+//            }
+//          else
+//            {
+//              printf("**arbitrary windows **");
 //            }
 
-//          printf("MesTimesInBC is %d \r\n", MesTimesInBC);
-          if(MesTimesInBC !=0)
-            {
-              if(finalTimerValue[0]== 0)
-                {
-                  printf("++++++++NumBc: %d first message is sent:++++++++++ \r\n", NumBC);
-                  //printf("messages should be sent directly after BC comes \r\n");
-                  NodeMesTransmit(Received_mes_id[NumBC][1]);
+//          CanRxFlag = DISABLE;
+//        }
 
-                  if(MesTimesInBC > 1)
-                    {
-                      TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
-                    }
-                  //TIM3_Int_Init(finalTimerValue[finalTimerArrayShift_zero],7199,ENABLE); // this gets from timerset()
-                  // printf("finalTimerValue[finalTimerArrayShift_zero] value: %d++++++++++ \r\n", finalTimerValue[finalTimerArrayShift_zero]);
-                  printf("++++++++Column =1:for message finish++++++++++ \r\n");
-                }
-              else
-                {
-                  TIM3_Int_Init(finalTimerValue[0],7199,ENABLE); // this gets from timerset()
-                }
-            }
-          else
-            {
-              printf("+++GGG nothing to send ! in NumBc:%d  GGG+++\r\n", NumBC);
-            }
-          interrupt_sos_times =1;
-          NumBC++;
-
-          if(NumBC > TotNumBC)   //3>= 3 // -1  //0
-            {
-              NumBC = 0; // -1;//
-            }
-          printf("************reference end ********** \r\n");
-          printf(" \r\n");
-          CanRefFlag = DISABLE;
-          finalTimerArrayShift_Nonzero = 1;
-          finalTimerArrayShift_zero =1;
-          TimerArrayLocation = 0;
-				  CanRefFlag1 = 0;
-        }
-
-
-
-
-      /*SOS triggered internal messages*/
-      if(SOS_ISR_flag == ENABLE )  //SOS_ISR_flag == ENABLE 
-        {
-
-          LEDA0 = !LEDA0;
-          printf("##########interrupt %d ########### \r\n",interrupt_sos_times);
-          temp_sos_ID = SOS_ID();
-          printf("##########end interrupt########### \r\n");
-          printf(" \r\n");
-          temp_MesTranTime = MesTransmitTime(temp_sos_ID);
-          // printf("Exact MesTranTime=: %d \r\n", temp_MesTranTime);
-          interrupt_sos_times ++ ;
-          SOS_ISR_flag = DISABLE;
-        }
-
-      if(CanRxFlag == ENABLE )  //CanRxFlag == ENABLE
-        {
-          u16 led0pwmval=0;
-          u8 dir=1;
-          LEDA1 = !LEDA1;
-          if(CANRx_ID == mes1_ID)
-            {
-              LEDB5 = !LEDB5; // 120
-              printf("**Mes1 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes2_ID)
-            {
-             // LEDB6 = !LEDB6; //121
-              printf("**Mes2 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes3_ID)
-            {
-              //LEDB7 = !LEDB7; //122
-              printf("**Mes3 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes4_ID)
-            {
-              // LEDB8 = !LEDB8; //123
-              printf("**ABS INFO：(CANRx_ID, wheel status, speed) = ( %#x ,%d , %d rps, %#x)** \r\n", CANRx_ID, Rx1_DATA0, (Rx1_DATA1),  Rx1_DATA3);
-              while(Rx1_DATA0 == 1)
-                {
-                  delay_ms(1);
-                  if(dir)led0pwmval = led0pwmval+ 10 ;
-                  //else led0pwmval = led0pwmval- 10;
-
-                  if(led0pwmval>1500)dir=0;
-                  if(led0pwmval==0)dir=1;
-                  TIM_SetCompare2(TIM4,led0pwmval); // releasing the brake pad
-                  printf("pwm works now %d \r\n", led0pwmval);
-                }
-            }
-          else if(CANRx_ID == mes5_ID)
-            {
-              LEDB9 = !LEDB9; //124
-              printf("**Mes5 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else if(CANRx_ID == mes6_ID)
-            {
-              LEDA2 = !LEDA2; //125
-              printf("**Mes6 INFO：(CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3) = ( %#x ,%#x , %#x , %#x)** \r\n", CANRx_ID, Rx1_DATA0, Rx1_DATA1, Rx1_DATA3);
-            }
-          else
-            {
-              printf("**arbitrary windows **");
-            }
-
-          CanRxFlag = DISABLE;
-        }
-
-     //whileTest =0; //06.07.22 close this test
+//     //whileTest =0; //06.07.22 close this test
     }
 }
 

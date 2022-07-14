@@ -48,6 +48,8 @@ extern u16 pscValue;
 extern vu32 TMethodSpeed ;
 //vu32 NumHighFreq ;
 extern vu32 NumHighFreq;
+/*7.7.22 add for testing*/
+
 float TSpeed(int arr, int psc )
 {
 	float Tv = 0;
@@ -128,7 +130,7 @@ extern uint8_t MasterNumBC;
 uint16_t mes_send_flag = 0;
 uint8_t Transmit_time_flag = 0;
 
-vu32 NumHighFreq; // for high frequency method
+vu32 NumHighFreq =0; // for high frequency method
 
 void TIM2_IRQHandler(void)   //TIM3ÖÐ¶Ï
 {

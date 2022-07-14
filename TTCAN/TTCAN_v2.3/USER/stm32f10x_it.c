@@ -274,23 +274,11 @@ void TIM3_IRQHandler(void)   //TIM3中断
 //    }
 //}
 
+
+
 /*M method*/
 //#include "timer.h"
-#include "math.h"
-#include "nodes.h"
 
-
-int EncoderFlag = 0;
-void TIM4_IRQHandler(void)   //TIM3中断
-{
-	if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET) //检查指定的TIM中断发生与否:TIM 中断源 
-		{    
-			   
-			   EncoderFlag =1;
-		   
-		}
-		TIM_ClearITPendingBit(TIM4, TIM_IT_Update  );  //清除TIMx的中断待处理位:TIM 中断源 
-}
 /**
   * @}
   */

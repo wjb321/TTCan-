@@ -173,7 +173,7 @@ void WheelSpeed(uint16_t ID4)
   delay_ms(2);
   /* transmit message wang adds */
   while(CAN_TransmitStatus(CAN1,box) == CANTXFAILED);
-  printf(">>>>>increase_flag %#x, ID  %#x is sent<<<<<\r\n",increase_flag,  ID4);
+  //printf(">>>>>increase_flag %#x, ID  %#x is sent<<<<<\r\n",increase_flag,  ID4);
 }
 
 

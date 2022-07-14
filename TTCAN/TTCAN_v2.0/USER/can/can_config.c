@@ -156,6 +156,9 @@ void NodeMesTransmit(uint16_t ID)
 
   switch(ID)
     {
+		case mes4_ID:
+      WheelSpeed(mes4_ID);
+      break;
     case mes1_ID:
       message1(mes1_ID);
       break;
@@ -165,17 +168,14 @@ void NodeMesTransmit(uint16_t ID)
     case mes3_ID:
       message3(mes3_ID);
       break;
-    case mes4_ID:
-      WheelSpeed(mes4_ID);
-      break;
-    case mes5_ID:
+   case mes5_ID:
       message5(mes5_ID);
       break;
     case mes6_ID:
       message6(mes6_ID);
       break;
     default :
-      printf("can be a arbitrary message \r\n");
+     // printf("arbi\r\n");
 		  break;
 
     }

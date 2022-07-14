@@ -1,0 +1,46 @@
+#include "led.h"
+#include "delay.h"
+#include "key.h"
+#include "sys.h"
+#include "usart.h"
+#include "timer.h"
+
+
+ int main(void)
+ {	
+  vu8 key=0;	 
+ 	u16 led0pwmval=0;
+	u8 dir=1;	
+	KEY_Init();
+	delay_init();	    	 //延时函数初始化	  
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
+	uart_init(115200);	 //串口初始化为115200
+ 	LED_Init();			     //LED端口初始化
+ 	TIM3_PWM_Init(899,0);	 //不分频。PWM频率=72000000/900=80Khz
+   	while(1)
+	{ 
+		key=KEY_Scan(0);	//得到键值
+		if(key)
+		{
+			switch(key)
+			{
+							case KEY2_PRES:
+				break;
+
+			case KEY1_PRES:
+				break;
+
+			case KEY0_PRES:
+				break;
+			}
+
+		}
+ 		delay_ms(1);	 
+		if(dir)led0pwmval+= 5;
+		else led0pwmval-=5;
+ 		if(led0pwmval>800)dir=0;
+		if(led0pwmval==0)dir=1;										 
+		TIM_SetCompare2(TIM3,led0pwmval);		   
+	}	 
+ }
+

@@ -1,0 +1,10 @@
+..\obj\stm32f10x_it.o: stm32f10x_it.c
+..\obj\stm32f10x_it.o: stm32f10x_it.h
+..\obj\stm32f10x_it.o: stm32f10x.h
+..\obj\stm32f10x_it.o: C:\Users\hoshiraku\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.4.0\Device\Include\core_cm3.h
+..\obj\stm32f10x_it.o: F:\keil\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\stm32f10x_it.o: C:\Users\hoshiraku\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.4.0\Device\Include\cmsis_version.h
+..\obj\stm32f10x_it.o: C:\Users\hoshiraku\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.4.0\Device\Include\cmsis_compiler.h
+..\obj\stm32f10x_it.o: C:\Users\hoshiraku\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.4.0\Device\Include\cmsis_armcc.h
+..\obj\stm32f10x_it.o: system_stm32f10x.h
+..\obj\stm32f10x_it.o: stm32f10x_conf.h
