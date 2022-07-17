@@ -1,0 +1,149 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: μVision V5.36.0.0
+Copyright (C) 2021 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: jiabin wang, freiburg, LIC=WHYH9-4A92X-HLMCL-0C78W-IEFBT-GUH3X
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.36.0.0
+Toolchain Path:  F:\keil\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 7 (build 960)
+Assembler:       Armasm.exe V5.06 update 7 (build 960)
+Linker/Locator:  ArmLink.exe V5.06 update 7 (build 960)
+Library Manager: ArmAr.exe V5.06 update 7 (build 960)
+Hex Converter:   FromElf.exe V5.06 update 7 (build 960)
+CPU DLL:         SARMCM3.DLL V5.36.0.0
+Dialog DLL:      DARMSTM.DLL V1.68.0.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.9.0
+Dialog DLL:      TARMSTM.DLL V1.66.0.0
+ 
+<h2>Project:</h2>
+E:\jiabin_github\TTCan-\TTCAN\TTCAN_v2.3\MDK-ARM\Project.uvprojx
+Project File Date:  07/15/2022
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'F:\keil\ARM\ARMCC\Bin'
+Rebuild target 'HY-RedBull V3.0'
+compiling systick.c...
+compiling stm32f10x_systick.c...
+compiling main.c...
+..\USER\nodes\nodes.h(39): warning:  #1-D: last line of file ends without a newline
+  #endif 
+..\USER\main.c: 1 warning, 0 errors
+compiling stm32f10x_it.c...
+compiling misc.c...
+compiling stm32f10x_gpio.c...
+compiling stm32f10x_flash.c...
+compiling stm32f10x_rcc.c...
+compiling stm32f10x_adc.c...
+compiling stm32f10x_bkp.c...
+compiling stm32f10x_cec.c...
+compiling stm32f10x_can.c...
+compiling stm32f10x_crc.c...
+compiling stm32f10x_dbgmcu.c...
+compiling stm32f10x_dac.c...
+compiling stm32f10x_dma.c...
+compiling stm32f10x_iwdg.c...
+compiling stm32f10x_exti.c...
+compiling stm32f10x_i2c.c...
+compiling stm32f10x_fsmc.c...
+compiling stm32f10x_rtc.c...
+compiling stm32f10x_spi.c...
+compiling stm32f10x_pwr.c...
+compiling stm32f10x_sdio.c...
+compiling stm32f10x_wwdg.c...
+compiling stm32f10x_usart.c...
+compiling stm32f10x_tim.c...
+compiling core_cm3.c...
+assembling startup_stm32f10x_hd.s...
+compiling system_stm32f10x.c...
+compiling usart.c...
+compiling led.c...
+compiling can_config.c...
+..\USER\can\can_config.c(218): warning:  #1-D: last line of file ends without a newline
+  }
+..\USER\can\can_config.c: 1 warning, 0 errors
+compiling timer.c...
+..\USER\timer\timer.h(7): warning:  #1295-D: Deprecated declaration calc_motor_rotate_speed - give arg types
+  int calc_motor_rotate_speed();
+..\USER\nodes\nodes.h(39): warning:  #1-D: last line of file ends without a newline
+  #endif 
+..\USER\timer\timer.c(113): warning:  #188-D: enumerated type mixed with another type
+    TIM_Cmd(TIM3, timer_enable_flag );  //使能TIMx
+..\USER\timer\timer.c(140): warning:  #188-D: enumerated type mixed with another type
+    TIM_Cmd(TIM2, timer_enable_flag );  //使能TIMx
+..\USER\timer\timer.c(330): warning:  #1-D: last line of file ends without a newline
+  }
+..\USER\timer\timer.c: 5 warnings, 0 errors
+compiling TTCAN_mes.c...
+..\USER\ttcan\TTCAN_mes.c(253): warning:  #1-D: last line of file ends without a newline
+  }
+..\USER\ttcan\TTCAN_mes.c: 1 warning, 0 errors
+compiling ttcan.c...
+..\USER\timer\timer.h(7): warning:  #1295-D: Deprecated declaration calc_motor_rotate_speed - give arg types
+  int calc_motor_rotate_speed();
+..\USER\ttcan\ttcan.c: 1 warning, 0 errors
+compiling sys.c...
+compiling nodes.c...
+..\USER\nodes\nodes.h(39): warning:  #1-D: last line of file ends without a newline
+  #endif 
+..\USER\timer\timer.h(7): warning:  #1295-D: Deprecated declaration calc_motor_rotate_speed - give arg types
+  int calc_motor_rotate_speed();
+..\USER\nodes\nodes.c(111): warning:  #177-D: variable "t"  was declared but never referenced
+    u16 t;
+..\USER\nodes\nodes.c(112): warning:  #177-D: variable "len"  was declared but never referenced
+    u16 len;
+..\USER\nodes\nodes.c(113): warning:  #177-D: variable "times"  was declared but never referenced
+    u16 times=0;
+..\USER\nodes\nodes.c(115): warning:  #177-D: variable "Veloarray"  was declared but never referenced
+    int Veloarray = 0;
+..\USER\nodes\nodes.c(116): warning:  #177-D: variable "FillArrayTimes"  was declared but never referenced
+    int FillArrayTimes = 0;
+..\USER\nodes\nodes.c(119): warning:  #177-D: variable "TempData"  was declared but never referenced
+    float TempData[] = {17.92, 16.00, 14.32};
+..\USER\nodes\nodes.c(120): warning:  #177-D: variable "TempDataReceived"  was declared but never referenced
+    int TempDataReceived = 1;
+..\USER\nodes\nodes.c(122): warning:  #177-D: variable "CanRxFlag1"  was declared but never referenced
+    uint8_t CanRxFlag1  = 1;
+..\USER\nodes\nodes.c(124): warning:  #177-D: variable "CanRefFlag1"  was declared but never referenced
+    uint8_t CanRefFlag1 = 1;
+..\USER\nodes\nodes.c(125): warning:  #177-D: variable "forloop"  was declared but never referenced
+    int forloop = 1;
+..\USER\nodes\nodes.c(428): warning:  #177-D: variable "t"  was declared but never referenced
+    u16 t;
+..\USER\nodes\nodes.c(429): warning:  #177-D: variable "len"  was declared but never referenced
+    u16 len;
+..\USER\nodes\nodes.c(430): warning:  #177-D: variable "times"  was declared but never referenced
+    u16 times=0;
+..\USER\nodes\nodes.c(433): warning:  #177-D: variable "CountingEncoderNumFlag1"  was declared but never referenced
+    int CountingEncoderNumFlag1 =1;
+..\USER\nodes\nodes.c(434): warning:  #177-D: variable "encoderValue"  was declared but never referenced
+  	int encoderValue;
+..\USER\nodes\nodes.c(435): warning:  #177-D: variable "whileTest"  was declared but never referenced
+  	int whileTest = 1;
+..\USER\nodes\nodes.c(436): warning:  #177-D: variable "CanRefFlag1"  was declared but never referenced
+  	int CanRefFlag1 = 1;
+..\USER\nodes\nodes.c: 19 warnings, 0 errors
+linking...
+Program Size: Code=23224 RO-data=1216 RW-data=516 ZI-data=1196  
+FromELF: creating hex file...
+".\Obj\Project.axf" - 0 Error(s), 28 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32F1xx_DFP.2.4.0.pack
+                Keil.STM32F1xx_DFP.2.4.0
+                STMicroelectronics STM32F1 Series Device Support, Drivers and Examples
+
+<h2>Collection of Component include folders:</h2>
+  C:\Users\hoshiraku\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.4.0\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+Build Time Elapsed:  00:00:20
+</pre>
+</body>
+</html>
