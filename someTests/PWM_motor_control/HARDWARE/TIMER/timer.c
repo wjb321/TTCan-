@@ -5,12 +5,13 @@
 
 #define ENCODER_RESOLUTION 11   /*编码器一圈的物理脉冲数*/
 #define ENCODER_MULTIPLE 4       /*编码器倍频，通过定时器的编码器模式设置*/
-#define MOTOR_REDUCTION_RATIO 34 /*电机的减速比*/
+#define MOTOR_REDUCTION_RATIO 45 /*电机的减速比*/
 #define TOTAL_RESOLUTION ( ENCODER_RESOLUTION*ENCODER_MULTIPLE*MOTOR_REDUCTION_RATIO ) 
 #define CNT_INIT 0
 extern u16 arrValue ;
 extern u16 pscValue;
 extern vu32 TMethodSpeed ;
+extern int Pulse;
 //vu32 NumHighFreq ;
 vu32 NumHighFreq =0; // for high frequency method
 int rounds = 0;
@@ -46,11 +47,11 @@ float TSpeed(int arr, int psc )
 {
 	float Tv = 0;
 	int freq = 0;
-	freq = (int)(1/(((arr+1)*(psc +1)) / (72* pow(10,6))));
-	Tv = 60* freq / (TOTAL_RESOLUTION * NumHighFreq *1.0);
+	freq = (int)(1.0/(((arr+1)*(psc +1)) / (72.0* pow(10.0,6.0))));
+	Tv = 60* freq * Pulse/ (TOTAL_RESOLUTION * NumHighFreq *1.0);
 //	printf("freq is %d \r\n", freq);
 //	printf("NumHighFreq is %d \r\n", NumHighFreq);
-	printf("%.3f \r\n", Tv );
+	printf("Tv:%.3f \n", Tv );
 	NumHighFreq = 0;
 	return Tv;
 	//printf("Tv is %.3f \r\n", Tv);
@@ -98,8 +99,8 @@ void TIM2_IRQHandler(void)   //TIM3中断
       TIM_ClearITPendingBit(TIM2, TIM_IT_Update);  //清除TIMx更新中断标志
 
     
-         // NumHighFreq ++; //Tmethod use this vlaue
-			 Mspeed(arrValue, pscValue);
+          NumHighFreq ++; //Tmethod use this vlaue
+			 //Mspeed(arrValue, pscValue);
     }
 }
 
@@ -182,7 +183,7 @@ void TIM3_PWM_Init(u16 arr,u16 psc)
 
 }
 
-void TIM4_EncoderMode_Config(void)
+void TIM4_EncoderMode_Config(int Period)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
@@ -200,7 +201,7 @@ void TIM4_EncoderMode_Config(void)
     GPIO_Init(GPIOB, &GPIO_InitStructure);                           
 
     TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-    TIM_TimeBaseStructure.TIM_Period = 1495;//7;//7;  //设定计数器重装值   TIMx_ARR = 1024*4-1 这是360线的
+    TIM_TimeBaseStructure.TIM_Period = Period;//7;//7;  //设定计数器重装值   TIMx_ARR = 1024*4-1 这是360线的
     TIM_TimeBaseStructure.TIM_Prescaler = 0; //TIM4时钟预分频值
     TIM_TimeBaseStructure.TIM_ClockDivision =TIM_CKD_DIV1 ;//设置时钟分割 T_dts = T_ck_int    
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; //TIM向上计数 
@@ -231,11 +232,11 @@ void TIM4_IRQHandler(void)   //TIM3中断
 {
 	if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET) //检查指定的TIM中断发生与否:TIM 中断源 
 		{    
-			  rounds ++;
-			  TIM_SetCounter(TIM4, CNT_INIT);/*CNT设初值*/
-        			
-			//TSpeed( arrValue, pscValue );
-			//printf("%d \r\n", TIM4->CNT );
+			  //rounds ++;
+			 //TIM_SetCounter(TIM4, CNT_INIT);/*CNT设初值*/
+       //printf("TIM4 %d \r\n", TIM4->CNT ); 			
+			TSpeed( arrValue, pscValue );
+		  
 			//LED0 = !LED0 ;
 		   
 		}
